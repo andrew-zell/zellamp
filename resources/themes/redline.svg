@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="360" viewBox="0 0 260 360"
+  data-za-id="redline" data-za-name="Redline"
+  data-za-description="A carbon-fiber pod with speaker ears and a red glass LCD. Built for 3am WindowBlinds sessions."
+  data-za-panel="graphite-pro">
+  <defs>
+    <linearGradient id="gunmetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5a5f66"/>
+      <stop offset="0.25" stop-color="#2a2d32"/>
+      <stop offset="0.6" stop-color="#16181b"/>
+      <stop offset="1" stop-color="#3a3e44"/>
+    </linearGradient>
+    <linearGradient id="bevel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9aa0a8"/>
+      <stop offset="0.5" stop-color="#2a2d32"/>
+      <stop offset="1" stop-color="#6b7178"/>
+    </linearGradient>
+    <pattern id="carbon" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#111315"/>
+      <rect width="3" height="3" fill="#24272b"/>
+      <rect x="3" y="3" width="3" height="3" fill="#24272b"/>
+      <rect width="3" height="1" fill="#33373c"/>
+      <rect x="3" y="3" width="3" height="1" fill="#33373c"/>
+    </pattern>
+    <radialGradient id="speaker" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#ff5a3a"/>
+      <stop offset="0.35" stop-color="#b3120a"/>
+      <stop offset="0.8" stop-color="#3a0503"/>
+      <stop offset="1" stop-color="#140101"/>
+    </radialGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a0202"/>
+      <stop offset="1" stop-color="#120000"/>
+    </linearGradient>
+    <pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#ff2a1a" opacity="0.07"/>
+    </pattern>
+    <radialGradient id="btn" cx="0.45" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#6b7078"/>
+      <stop offset="0.6" stop-color="#25282d"/>
+      <stop offset="1" stop-color="#0c0d0f"/>
+    </radialGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+    <clipPath id="screenClip"><rect x="42" y="96" width="176" height="156" rx="20"/></clipPath>
+  </defs>
+  <style>
+    .lcd { font: 11px 'Andale Mono', Menlo, monospace; fill: #ff4a32; }
+    .lcd-dim { font: 9px 'Andale Mono', Menlo, monospace; fill: #b3241a; letter-spacing: 1px; }
+    .brand { font: bold 9px 'Arial Black', Verdana, sans-serif; fill: #8a1a10; letter-spacing: 3px; }
+    .icon { fill: #ff3a24; }
+    .za-on .led { fill: #ff3a24; filter: url(#glow); }
+    .pause-icon { display: none; }
+    .za-playing .pause-icon { display: inline; }
+    .za-playing .play-icon { display: none; }
+    .za-playing .heart { animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+  </style>
+
+  <g filter="url(#shadow)">
+    <!-- Ears -->
+    <circle cx="60" cy="58" r="46" fill="url(#gunmetal)" stroke="#000"/>
+    <circle cx="200" cy="58" r="46" fill="url(#gunmetal)" stroke="#000"/>
+    <!-- Body -->
+    <rect x="18" y="56" width="224" height="290" rx="56" fill="url(#gunmetal)" stroke="#000"/>
+  </g>
+  <rect x="26" y="64" width="208" height="274" rx="50" fill="url(#carbon)" opacity="0.85"/>
+  <rect x="18.5" y="56.5" width="223" height="289" rx="55.5" fill="none" stroke="url(#bevel)" stroke-width="2"/>
+  <path d="M40 76 C 90 60, 170 60, 220 76" fill="none" stroke="#fff" stroke-opacity="0.18" stroke-width="3"/>
+
+  <!-- Speaker ears: left opens the skin browser, right hides -->
+  <g data-za="skins"><title>Skin Browser</title>
+    <circle cx="60" cy="58" r="32" fill="url(#speaker)" stroke="#000" stroke-width="2"/>
+    <circle cx="60" cy="58" r="22" fill="none" stroke="#000" stroke-opacity="0.5"/>
+    <circle cx="60" cy="58" r="12" fill="none" stroke="#000" stroke-opacity="0.5"/>
+    <circle class="heart" cx="60" cy="58" r="4" fill="#ffb3a0" filter="url(#glow)"/>
+  </g>
+  <g data-za="close"><title>Hide</title>
+    <circle cx="200" cy="58" r="32" fill="url(#speaker)" stroke="#000" stroke-width="2"/>
+    <circle cx="200" cy="58" r="22" fill="none" stroke="#000" stroke-opacity="0.5"/>
+    <circle cx="200" cy="58" r="12" fill="none" stroke="#000" stroke-opacity="0.5"/>
+    <circle class="heart" cx="200" cy="58" r="4" fill="#ffb3a0" filter="url(#glow)"/>
+  </g>
+
+  <!-- Screen -->
+  <rect x="36" y="90" width="188" height="168" rx="26" fill="url(#bevel)" stroke="#000"/>
+  <rect x="42" y="96" width="176" height="156" rx="20" fill="url(#screen)"/>
+  <g clip-path="url(#screenClip)">
+    <rect x="42" y="96" width="176" height="156" fill="url(#scan)"/>
+    <text class="brand" x="130" y="114" text-anchor="middle">ZELLAMP</text>
+    <g transform="translate(82 124) skewX(-7)" fill="#ff3a24" filter="url(#glow)">
+      <g data-za="time" data-za-font="7seg" data-za-digit="30" data-za-ghost="0.09"/>
+    </g>
+    <text class="lcd" x="54" y="176" data-za="title" data-za-chars="23">Freeform Skins</text>
+    <text class="lcd-dim" x="54" y="190" data-za="artist" data-za-chars="25" data-za-upper="">Zellamp</text>
+    <rect data-za="vis" data-za-style="bars" data-za-bars="22" data-za-gap="2" data-za-peak="#ffb3a0"
+      data-za-colors="#ffd0c0,#ff4a32,#b3120a,#4a0402" x="54" y="198" width="152" height="40" fill="none"/>
+    <rect x="42" y="96" width="176" height="44" fill="url(#gloss)" opacity="0.18" pointer-events="none"/>
+  </g>
+
+  <!-- Seek -->
+  <g data-za="seek"><title>Seek</title>
+    <rect data-za-part="track" x="52" y="268" width="156" height="5" rx="2.5" fill="#2a0202" stroke="#000"/>
+    <rect data-za-part="fill" x="52" y="268" width="0" height="5" rx="2.5" fill="#ff3a24" filter="url(#glow)"/>
+  </g>
+
+  <!-- Volume: notch strip down the right edge -->
+  <g data-za="volume" data-za-orient="vertical"><title>Volume</title>
+    <rect data-za-part="track" x="228" y="110" width="6" height="120" rx="3" fill="#2a0202" stroke="#000"/>
+    <rect data-za-part="fill" x="228" y="110" width="6" height="0" rx="3" fill="#ff3a24" filter="url(#glow)"/>
+  </g>
+
+  <!-- Buttons along a smile -->
+  <g data-za="prev"><title>Previous</title>
+    <circle cx="62" cy="298" r="15" fill="url(#btn)" stroke="#000"/>
+    <path class="icon" d="M55 292 h3 v12 h-3 z M68 292 v12 l-9 -6 z"/>
+  </g>
+  <g data-za="stop"><title>Stop</title>
+    <circle cx="95" cy="314" r="13" fill="url(#btn)" stroke="#000"/>
+    <rect class="icon" x="90" y="309" width="10" height="10" rx="1"/>
+  </g>
+  <g data-za="playpause"><title>Play / Pause</title>
+    <circle cx="130" cy="318" r="21" fill="url(#btn)" stroke="#000"/>
+    <circle cx="130" cy="318" r="21" fill="none" stroke="#ff3a24" stroke-width="1.5" filter="url(#glow)"/>
+    <path class="icon play-icon" d="M124 307 v22 l17 -11 z"/>
+    <path class="icon pause-icon" d="M121 308 h6 v20 h-6 z M133 308 h6 v20 h-6 z"/>
+  </g>
+  <g data-za="next"><title>Next</title>
+    <circle cx="198" cy="298" r="15" fill="url(#btn)" stroke="#000"/>
+    <path class="icon" d="M192 292 v12 l9 -6 z M202 292 h3 v12 h-3 z"/>
+  </g>
+  <g data-za="shuffle"><title>Shuffle</title>
+    <circle cx="165" cy="314" r="13" fill="url(#btn)" stroke="#000"/>
+    <path d="M158 309 h4 l8 10 h4 M158 319 h4 l8 -10 h4" fill="none" stroke="#ff3a24" stroke-width="1.6"/>
+    <circle class="led" cx="165" cy="324" r="1.6" fill="#4a0402"/>
+  </g>
+  <g data-za="repeat"><title>Repeat</title>
+    <rect x="114" y="276" width="32" height="12" rx="6" fill="url(#btn)" stroke="#000"/>
+    <rect x="121" y="279" width="13" height="6" rx="3" fill="none" stroke="#ff3a24" stroke-width="1.3"/>
+    <path d="M129 277 l2.5 2 l-2.5 2" fill="none" stroke="#ff3a24" stroke-width="1.2"/>
+    <circle class="led" cx="140" cy="282" r="1.6" fill="#4a0402"/>
+  </g>
+</svg>

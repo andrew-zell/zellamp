@@ -1,0 +1,84 @@
+[
+  {
+    "id": "classic",
+    "name": "Winamp Classic",
+    "description": "The original Winamp 2.91 base skin, untouched.",
+    "file": "classic.wsz"
+  },
+  {
+    "id": "neon-arcade",
+    "name": "Neon Arcade",
+    "description": "Synthwave purple chrome, cyan LCD, hot-pink sliders, CRT scanlines.",
+    "file": "neon-arcade.wsz"
+  },
+  {
+    "id": "walnut-hifi",
+    "name": "Walnut Hi-Fi",
+    "description": "1970s receiver: walnut grain, amber display, brushed-brass knobs.",
+    "file": "walnut-hifi.wsz"
+  },
+  {
+    "id": "arctic-glass",
+    "name": "Arctic Glass",
+    "description": "Bright frosted glass with an ice-blue display. The light one.",
+    "file": "arctic-glass.wsz"
+  },
+  {
+    "id": "phosphor",
+    "name": "Phosphor",
+    "description": "Monochrome green-screen terminal with heavy CRT scanlines.",
+    "file": "phosphor.wsz"
+  },
+  {
+    "id": "bubblegum",
+    "name": "Bubblegum",
+    "description": "Y2K translucent-plastic candy: pastel pink shell, mint display.",
+    "file": "bubblegum.wsz"
+  },
+  {
+    "id": "graphite-pro",
+    "name": "Graphite Pro",
+    "description": "Brushed titanium and graphite with an ice-blue readout and orange accents.",
+    "file": "graphite-pro.wsz"
+  },
+  {
+    "id": "bondi",
+    "name": "Bondi",
+    "description": "Translucent candy plastic, 1998 desktop-computer blue, with a backlit phone LCD and jelly buttons in orbit.",
+    "file": "bondi.svg",
+    "kind": "freeform",
+    "panel": "arctic-glass"
+  },
+  {
+    "id": "liquid-chrome",
+    "name": "Liquid Chrome",
+    "description": "A molten chrome blob with an aqua glass eye, volume ring, and a sunken LCD. Peak deviantArt, circa 2002.",
+    "file": "liquid-chrome.svg",
+    "kind": "freeform",
+    "panel": "graphite-pro"
+  },
+  {
+    "id": "luna",
+    "name": "Luna",
+    "description": "An XP-era desktop player: Luna blue title bar, a Bliss hillside display, and a block-segment progress bar.",
+    "file": "luna.svg",
+    "kind": "freeform",
+    "panel": "arctic-glass"
+  },
+  {
+    "id": "orb",
+    "name": "Orb",
+    "description": "2001 console dashboard: a glowing green glass orb with a radial spectrum, seek ring, and a translucent blade arm.",
+    "file": "orb.svg",
+    "kind": "freeform",
+    "panel": "phosphor"
+  },
+  {
+    "id": "redline",
+    "name": "Redline",
+    "description": "A carbon-fiber pod with speaker ears and a red glass LCD. Built for 3am WindowBlinds sessions.",
+    "file": "redline.svg",
+    "kind": "freeform",
+    "panel": "graphite-pro"
+  }
+]

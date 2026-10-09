@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="372" height="196" viewBox="0 0 372 196"
+  data-za-id="luna" data-za-name="Luna"
+  data-za-description="An XP-era desktop player: Luna blue title bar, a Bliss hillside display, and a block-segment progress bar."
+  data-za-panel="arctic-glass">
+  <defs>
+    <linearGradient id="titlebar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0997ff"/>
+      <stop offset="0.08" stop-color="#0053ee"/>
+      <stop offset="0.4" stop-color="#0050ee"/>
+      <stop offset="0.88" stop-color="#06f"/>
+      <stop offset="1" stop-color="#0042c6"/>
+    </linearGradient>
+    <linearGradient id="frame" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0831d9"/>
+      <stop offset="0.5" stop-color="#166aee"/>
+      <stop offset="1" stop-color="#0831d9"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f6fd6"/>
+      <stop offset="0.6" stop-color="#7fb6f2"/>
+      <stop offset="1" stop-color="#c9e3fb"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd14f"/>
+      <stop offset="0.5" stop-color="#3f9b22"/>
+      <stop offset="1" stop-color="#226b12"/>
+    </linearGradient>
+    <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5fae3c"/>
+      <stop offset="1" stop-color="#2d7a19"/>
+    </linearGradient>
+    <radialGradient id="startGreen" cx="0.4" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#9be27f"/>
+      <stop offset="0.45" stop-color="#3d9c2f"/>
+      <stop offset="1" stop-color="#1c5e17"/>
+    </radialGradient>
+    <linearGradient id="xpButton" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#ecebe6"/>
+      <stop offset="1" stop-color="#d1cdbf"/>
+    </linearGradient>
+    <linearGradient id="closeRed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f19a7c"/>
+      <stop offset="0.45" stop-color="#e2502e"/>
+      <stop offset="1" stop-color="#c13414"/>
+    </linearGradient>
+    <linearGradient id="capBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb2ff"/>
+      <stop offset="0.45" stop-color="#2a6ff0"/>
+      <stop offset="1" stop-color="#1650d0"/>
+    </linearGradient>
+    <linearGradient id="block" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b7f5a6"/>
+      <stop offset="0.45" stop-color="#3fd12a"/>
+      <stop offset="1" stop-color="#21a313"/>
+    </linearGradient>
+    <pattern id="blocks" x="219" y="0" width="9" height="20" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="7" height="20" fill="url(#block)"/>
+    </pattern>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="textShadow">
+      <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#0a1f5c" flood-opacity="0.9"/>
+    </filter>
+    <clipPath id="screenClip"><rect x="14" y="38" width="190" height="104" rx="4"/></clipPath>
+  </defs>
+  <style>
+    .title { font: bold 13px Trebuchet MS, Tahoma, sans-serif; fill: #fff; }
+    .track { font: bold 12px Tahoma, Verdana, sans-serif; fill: #fff; }
+    .artist { font: 11px Tahoma, Verdana, sans-serif; fill: #eef6ff; }
+    .time { font: bold 26px Tahoma, Verdana, sans-serif; fill: #1b3f8f; letter-spacing: -0.5px; }
+    .meta { font: 10px Tahoma, Verdana, sans-serif; fill: #6a6a5f; }
+    .btnicon { fill: #2a3f6a; }
+    .toggle text { font: bold 9px Tahoma, Verdana, sans-serif; fill: #6a6a5f; }
+    .toggle.za-on rect { fill: #fdf7d5; stroke: #e1a63a; }
+    .toggle.za-on text { fill: #a0620a; }
+    .pause-icon { display: none; }
+    .za-playing .pause-icon { display: inline; }
+    .za-playing .play-icon { display: none; }
+  </style>
+
+  <g filter="url(#shadow)">
+    <!-- Window: rounded top corners like XP -->
+    <path d="M8 0 H364 Q372 0 372 8 V192 Q372 194 370 194 H2 Q0 194 0 192 V8 Q0 0 8 0 Z" fill="url(#frame)"/>
+    <rect x="4" y="28" width="364" height="162" fill="#ece9d8"/>
+    <path d="M8 0 H364 Q372 0 372 8 V28 H0 V8 Q0 0 8 0 Z" fill="url(#titlebar)"/>
+    <path d="M8 1 H364 Q371 1 371 8 V10 H1 V8 Q1 1 8 1 Z" fill="#fff" opacity="0.18"/>
+  </g>
+
+  <!-- Title -->
+  <path d="M12 7 l5 0 l-3 6 h5 l-9 10 l3 -8 h-4 z" fill="#ffc63a" stroke="#8a4a00" stroke-width="0.6"/>
+  <text class="title" x="26" y="19" filter="url(#textShadow)">Zellamp</text>
+
+  <!-- Caption buttons -->
+  <g data-za="skins"><title>Skin Browser</title>
+    <rect x="296" y="4" width="21" height="21" rx="3" fill="url(#capBlue)" stroke="#fff" stroke-width="1"/>
+    <rect x="301" y="9" width="11" height="9" fill="none" stroke="#fff" stroke-width="1.6"/>
+    <rect x="301" y="9" width="11" height="2.5" fill="#fff"/>
+  </g>
+  <g data-za="minimize"><title>Hide</title>
+    <rect x="320" y="4" width="21" height="21" rx="3" fill="url(#capBlue)" stroke="#fff" stroke-width="1"/>
+    <rect x="325" y="17" width="8" height="3" fill="#fff"/>
+  </g>
+  <g data-za="close"><title>Hide</title>
+    <rect x="344" y="4" width="21" height="21" rx="3" fill="url(#closeRed)" stroke="#fff" stroke-width="1"/>
+    <path d="M349.5 9.5 l10 10 M359.5 9.5 l-10 10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Bliss display -->
+  <g clip-path="url(#screenClip)">
+    <rect x="14" y="38" width="190" height="104" fill="url(#sky)"/>
+    <ellipse cx="60" cy="56" rx="26" ry="7" fill="#fff" opacity="0.65"/>
+    <ellipse cx="80" cy="52" rx="16" ry="6" fill="#fff" opacity="0.7"/>
+    <ellipse cx="160" cy="66" rx="20" ry="5" fill="#fff" opacity="0.5"/>
+    <path d="M14 118 C 70 96, 130 100, 204 112 V142 H14 Z" fill="url(#hillBack)"/>
+    <path d="M14 126 C 60 104, 140 108, 204 130 V142 H14 Z" fill="url(#hill)"/>
+    <rect data-za="vis" data-za-style="bars" data-za-bars="24" data-za-gap="2" data-za-peak="#ffffff"
+      data-za-colors="#ffffff,#e9f6ff,#bfe2ff" x="22" y="96" width="174" height="40" fill="none" opacity="0.85"/>
+    <text class="track" x="24" y="64" data-za="title" data-za-chars="24" filter="url(#textShadow)">Freeform Skins</text>
+    <text class="artist" x="24" y="80" data-za="artist" data-za-chars="28" filter="url(#textShadow)">Zellamp</text>
+  </g>
+  <rect x="14" y="38" width="190" height="104" rx="4" fill="none" stroke="#7f9db9"/>
+  <rect x="14.5" y="38.5" width="189" height="40" rx="4" fill="url(#gloss)" opacity="0.25" pointer-events="none"/>
+
+  <!-- Right side readouts -->
+  <text class="time" x="216" y="66" data-za="time">01:24</text>
+  <text class="meta" x="218" y="82" data-za="status">Playing</text>
+  <text class="meta" x="300" y="82" text-anchor="start" data-za="duration">03:30</text>
+
+  <!-- XP block progress bar -->
+  <g data-za="seek"><title>Seek</title>
+    <rect x="216" y="92" width="144" height="16" rx="3" fill="#fff" stroke="#686868"/>
+    <rect data-za-part="track" x="219" y="95" width="138" height="10" fill="none"/>
+    <rect data-za-part="fill" x="219" y="95" width="0" height="10" fill="url(#blocks)"/>
+  </g>
+
+  <!-- Volume trackbar -->
+  <g data-za="volume"><title>Volume</title>
+    <rect data-za-part="track" x="230" y="124" width="104" height="4" fill="#fff" stroke="#9d9c8f" rx="1"/>
+    <path data-za-part="thumb" d="M226 116 h10 v10 l-5 6 l-5 -6 z" fill="url(#xpButton)" stroke="#3c7e2f" stroke-width="1.2"/>
+  </g>
+  <path d="M342 120 l4 -3 v14 l-4 -3 h-3 v-8 z" fill="#6a6a5f"/>
+
+  <!-- Transport -->
+  <g data-za="prev"><title>Previous</title>
+    <circle cx="42" cy="166" r="14" fill="url(#xpButton)" stroke="#8a8778"/>
+    <path class="btnicon" d="M35 160 h3 v12 h-3 z M48 160 v12 l-9 -6 z"/>
+  </g>
+  <g data-za="playpause"><title>Play / Pause</title>
+    <circle cx="80" cy="166" r="19" fill="url(#startGreen)" stroke="#1c5e17" stroke-width="1.5"/>
+    <ellipse cx="78" cy="157" rx="12" ry="7" fill="#fff" opacity="0.35"/>
+    <path class="play-icon" d="M74 156 v20 l16 -10 z" fill="#fff" stroke="#1c5e17" stroke-width="0.8"/>
+    <path class="pause-icon" d="M72 157 h6 v18 h-6 z M82 157 h6 v18 h-6 z" fill="#fff" stroke="#1c5e17" stroke-width="0.8"/>
+  </g>
+  <g data-za="stop"><title>Stop</title>
+    <circle cx="118" cy="166" r="14" fill="url(#xpButton)" stroke="#8a8778"/>
+    <rect class="btnicon" x="112" y="160" width="12" height="12" rx="1"/>
+  </g>
+  <g data-za="next"><title>Next</title>
+    <circle cx="152" cy="166" r="14" fill="url(#xpButton)" stroke="#8a8778"/>
+    <path class="btnicon" d="M146 160 v12 l9 -6 z M156 160 h3 v12 h-3 z"/>
+  </g>
+
+  <g class="toggle" data-za="shuffle"><title>Shuffle</title>
+    <rect x="216" y="156" width="66" height="22" rx="3" fill="url(#xpButton)" stroke="#8a8778"/>
+    <text x="249" y="170" text-anchor="middle">Shuffle</text>
+  </g>
+  <g class="toggle" data-za="repeat"><title>Repeat</title>
+    <rect x="290" y="156" width="66" height="22" rx="3" fill="url(#xpButton)" stroke="#8a8778"/>
+    <text x="323" y="170" text-anchor="middle">Repeat</text>
+  </g>
+</svg>

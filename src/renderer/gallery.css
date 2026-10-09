@@ -1,0 +1,82 @@
+/* Skin browser layout, in skin pixels (window content is 446 x 306). */
+.layout {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.col-left {
+  width: 150px;
+}
+
+.col-right {
+  flex: 1;
+}
+
+.skin-list {
+  flex: 1;
+  padding: 2px 0;
+}
+
+.buttons {
+  margin-top: 4px;
+}
+
+.buttons-right {
+  justify-content: flex-end;
+}
+
+.preview {
+  height: 158px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-bottom: 5px;
+}
+
+.preview img {
+  display: block;
+}
+
+.preview-classic {
+  width: 275px;
+  height: 116px;
+  image-rendering: pixelated;
+}
+
+/* Vector skins: fit the panel, keep them smooth. */
+.preview-freeform {
+  max-width: 290px;
+  max-height: 150px;
+  image-rendering: auto;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 5px 4px;
+  gap: 2px;
+}
+
+.gap {
+  height: 3px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.drop {
+  position: absolute;
+  inset: 4px 5px;
+  display: grid;
+  place-items: center;
+  border-style: dashed;
+}

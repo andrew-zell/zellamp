@@ -1,0 +1,3 @@
+// Generated lightning-bolt template icon (black + alpha), 16pt @1x and @2x.
+export const TRAY_ICON_1X = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAaUlEQVR42mNgoAMQAOLzQBxArgHzgfg9uZoTgPg/1BCSgQHU5v9QNln+Bmm+T66//0MxyKAGJGxArL+x4f2k+Bsd34d6jWyvGJATFvehmgvI0awA1byekkR0nhx/w0A/uf6GAQd65FQGAG5nJix+v1L+AAAAAElFTkSuQmCC'
+export const TRAY_ICON_2X = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAu0lEQVR42u2WYQmAMBCFL4IRjLAIRjDCIhjBBkYwghGMYIRFMMKccAci6oac9/744IP9exsf243oj158IiYWRLlLrLyBzrq84lNHprbewHgon1DeBY/yHnldobxHVgHxLrQo7zsB5V0YUN4Fh/JewviV9xIWjat55z3HqvEsP3nP0SK9m9yK+sE77EEynQdXehrLeRBO5b1l+dn/jPyIBEvvV/4dARJQP+Cj/4lA8VpD5m0GlHdJQ38UswHEGZjIc2i9wgAAAABJRU5ErkJggg=='

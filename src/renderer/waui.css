@@ -1,0 +1,241 @@
+/* Winamp-style chrome for Zellamp's own windows. Pixel units are skin
+   pixels; the window's zoom factor scales them up. No rounding, no
+   anti-aliasing, no gradients: every color comes from the active skin. */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+  cursor: default;
+}
+
+canvas,
+.g-window * {
+  image-rendering: pixelated;
+}
+
+.px-text {
+  display: block;
+  flex: none;
+  align-self: flex-start;
+}
+
+/* ---------- gen.bmp frame ---------- */
+
+.g-window {
+  display: flex;
+  flex-direction: column;
+}
+
+.g-top {
+  display: flex;
+  height: 20px;
+  flex: none;
+  -webkit-app-region: drag;
+}
+
+.g-tl,
+.g-end,
+.g-tr {
+  width: 25px;
+  height: 20px;
+  flex: none;
+}
+
+.g-fill {
+  flex: 1;
+  height: 20px;
+  background-repeat: repeat-x;
+}
+
+.g-fill-r {
+  background-position: right;
+}
+
+.g-title {
+  flex: none;
+  height: 20px;
+  padding: 4px 3px 0 4px;
+  background-repeat: repeat-x;
+}
+
+.g-tr {
+  position: relative;
+}
+
+.g-close {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  right: 2px;
+  top: 3px;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.g-close:active {
+  background-image: var(--close-pressed);
+}
+
+.g-middle {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.g-ml,
+.g-mr {
+  position: relative;
+  flex: none;
+  background-repeat: repeat-y;
+}
+
+.g-ml {
+  width: 11px;
+}
+
+.g-mr {
+  width: 8px;
+}
+
+.g-mlb,
+.g-mrb {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 24px;
+  width: 100%;
+}
+
+.g-content {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background: var(--face);
+  padding: 4px 5px;
+}
+
+.g-bottom {
+  position: relative;
+  height: 14px;
+  flex: none;
+  background-repeat: repeat-x;
+}
+
+.g-bl,
+.g-br {
+  position: absolute;
+  bottom: 0;
+  width: 125px;
+  height: 14px;
+}
+
+.g-bl {
+  left: 0;
+}
+
+.g-br {
+  right: 0;
+}
+
+/* ---------- widgets ---------- */
+
+.wa-panel {
+  background: var(--list-bg);
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--dark) var(--light) var(--light) var(--dark);
+  outline: 1px solid #000;
+  outline-offset: -2px;
+  overflow: hidden;
+}
+
+.wa-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 6px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--light) var(--dark) var(--dark) var(--light);
+  background: var(--face);
+  box-shadow: 0 0 0 1px #000;
+  margin: 1px;
+  font: inherit;
+}
+
+/* Center the label; the generic .px-text rule pins text to the top. */
+.wa-button .px-text {
+  align-self: center;
+}
+
+.wa-button:active:not(:disabled) {
+  border-color: var(--dark) var(--light) var(--light) var(--dark);
+  padding: 1px 5px 0 7px;
+}
+
+.wa-button:disabled {
+  opacity: 0.45;
+}
+
+.wa-button:focus-visible {
+  outline: 1px dotted var(--accent);
+  outline-offset: 1px;
+}
+
+/* The highlighted row already shows where keyboard focus is. */
+.wa-list:focus {
+  outline: none;
+}
+
+.wa-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.px-label {
+  height: 9px;
+  padding-top: 1px;
+}
+
+.px-para {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Lists: playlist-editor colors */
+.wa-list {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.wa-list::-webkit-scrollbar {
+  display: none;
+}
+
+.wa-item {
+  display: flex;
+  align-items: center;
+  height: 10px;
+  padding: 0 3px;
+}
+
+.wa-item.selected {
+  background: var(--list-selected);
+}

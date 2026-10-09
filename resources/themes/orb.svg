@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="270" viewBox="0 0 420 270"
+  data-za-id="orb" data-za-name="Orb"
+  data-za-description="2001 console dashboard: a glowing green glass orb with a radial spectrum, seek ring, and a translucent blade arm."
+  data-za-panel="phosphor">
+  <defs>
+    <radialGradient id="core" cx="0.45" cy="0.38" r="0.7">
+      <stop offset="0" stop-color="#3fbf1c"/>
+      <stop offset="0.35" stop-color="#16620a"/>
+      <stop offset="0.75" stop-color="#062a03"/>
+      <stop offset="1" stop-color="#010801"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9aa39a"/>
+      <stop offset="0.25" stop-color="#3b403b"/>
+      <stop offset="0.5" stop-color="#151815"/>
+      <stop offset="0.8" stop-color="#2c312c"/>
+      <stop offset="1" stop-color="#6d756d"/>
+    </linearGradient>
+    <linearGradient id="arm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9dff6a" stop-opacity="0.55"/>
+      <stop offset="0.18" stop-color="#2f9b14" stop-opacity="0.55"/>
+      <stop offset="0.6" stop-color="#0a3a05" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#031a01" stop-opacity="0.92"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="gel" cx="0.45" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#e4ffb8"/>
+      <stop offset="0.35" stop-color="#6ee82c"/>
+      <stop offset="0.8" stop-color="#1b7f08"/>
+      <stop offset="1" stop-color="#0a3a03"/>
+    </radialGradient>
+    <linearGradient id="seekFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2fd11a"/>
+      <stop offset="1" stop-color="#c8ff7a"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+  <style>
+    .label { font: bold 11px 'Trebuchet MS', Verdana, sans-serif; fill: #d6ffbc; letter-spacing: 0.5px; }
+    .small { font: 9px 'Trebuchet MS', Verdana, sans-serif; fill: #7fd65a; letter-spacing: 1px; }
+    .icon { fill: #0b3a04; }
+    .toggle { font: bold 8px 'Trebuchet MS', Verdana, sans-serif; fill: #3f7a2a; letter-spacing: 1px; }
+    .za-on .toggle, .toggle.za-on { fill: #c8ff7a; }
+    [data-za="shuffle"].za-on text, [data-za="repeat"].za-on text { fill: #c8ff7a; }
+    .pause-icon { display: none; }
+    .za-playing .pause-icon { display: inline; }
+    .za-playing .play-icon { display: none; }
+  </style>
+
+  <g filter="url(#shadow)">
+    <!-- Blade arm -->
+    <path d="M150 74 C 236 60, 332 66, 384 92 Q 408 104 406 128 L 404 158 Q 400 180 376 186 C 322 198, 236 202, 150 192 Z"
+      fill="url(#arm)" stroke="#7dff3c" stroke-opacity="0.55" stroke-width="1.2"/>
+    <path d="M168 78 C 240 68, 320 72, 372 92 Q 386 98 390 106 C 330 86, 250 82, 172 92 Z" fill="url(#gloss)" opacity="0.55"/>
+
+    <!-- Orb rim + glass -->
+    <circle cx="128" cy="135" r="116" fill="url(#rim)" stroke="#000" stroke-opacity="0.6"/>
+    <circle cx="128" cy="135" r="108" fill="#020c01" stroke="#9dff6a" stroke-opacity="0.25"/>
+    <circle cx="128" cy="135" r="98" fill="url(#core)"/>
+  </g>
+
+  <!-- Radial spectrum inside the orb -->
+  <rect data-za="vis" data-za-style="radial" data-za-bars="56" data-za-inner="0.5" data-za-width="3"
+    data-za-colors="#f4ffd6,#a6ff5a,#2fbf12,#0e5a05" x="34" y="41" width="188" height="188" fill="none"/>
+
+  <!-- Center readout -->
+  <circle cx="128" cy="135" r="44" fill="#021401" fill-opacity="0.75" stroke="#7dff3c" stroke-opacity="0.35"/>
+  <g transform="translate(97 114) skewX(-6)" fill="#c8ff7a" filter="url(#glow)">
+    <g data-za="time" data-za-font="7seg" data-za-digit="20" data-za-ghost="0.1"/>
+  </g>
+  <text class="small" x="128" y="153" text-anchor="middle" data-za="status" data-za-upper="">Playing</text>
+
+  <!-- Glass highlight -->
+  <ellipse cx="116" cy="74" rx="68" ry="30" fill="url(#gloss)" opacity="0.45" pointer-events="none"/>
+
+  <!-- Seek ring -->
+  <circle cx="128" cy="135" r="103" fill="none" stroke="#0a3a05" stroke-width="6"/>
+  <circle data-za="seek" data-za-shape="ring" pathLength="100" stroke-dasharray="35 100" cx="128" cy="135" r="103" fill="none"
+    stroke="#9dff4a" stroke-width="6" stroke-linecap="round" transform="rotate(-90 128 135)" filter="url(#glow)"/>
+
+  <!-- Arm readout -->
+  <text class="label" x="246" y="104" data-za="track" data-za-chars="24">Zellamp - Freeform Skins</text>
+  <text class="small" x="246" y="118" data-za="album" data-za-chars="30" data-za-upper="">Y2K Collection</text>
+
+  <!-- Volume -->
+  <g data-za="volume">
+    <rect data-za-part="track" x="246" y="127" width="132" height="5" rx="2.5" fill="#031a01" stroke="#2f8f1f" stroke-width="0.8"/>
+    <rect data-za-part="fill" x="246" y="127" width="0" height="5" rx="2.5" fill="url(#seekFill)" filter="url(#glow)"/>
+    <circle data-za-part="thumb" cx="250" cy="129.5" r="5" fill="url(#gel)" stroke="#0a3a03"/>
+    <title>Volume</title>
+  </g>
+
+  <!-- Gel buttons -->
+  <g data-za="prev"><title>Previous</title>
+    <circle cx="262" cy="160" r="12" fill="url(#gel)" stroke="#0a3a03"/>
+    <path class="icon" d="M256 154 h3 v12 h-3 z M268 154 v12 l-8 -6 z"/>
+  </g>
+  <g data-za="playpause"><title>Play / Pause</title>
+    <circle cx="296" cy="160" r="16" fill="url(#gel)" stroke="#0a3a03" filter="url(#glow)"/>
+    <path class="icon play-icon" d="M291 151 v18 l14 -9 z"/>
+    <path class="icon pause-icon" d="M289 152 h5 v16 h-5 z M298 152 h5 v16 h-5 z"/>
+  </g>
+  <g data-za="next"><title>Next</title>
+    <circle cx="330" cy="160" r="12" fill="url(#gel)" stroke="#0a3a03"/>
+    <path class="icon" d="M324 154 v12 l8 -6 z M333 154 h3 v12 h-3 z"/>
+  </g>
+  <g data-za="stop"><title>Stop</title>
+    <circle cx="360" cy="160" r="10" fill="url(#gel)" stroke="#0a3a03"/>
+    <rect class="icon" x="355.5" y="155.5" width="9" height="9"/>
+  </g>
+
+  <!-- Toggles, window controls -->
+  <g data-za="shuffle"><title>Shuffle</title>
+    <rect x="252" y="176" width="36" height="12" rx="6" fill="#031a01" stroke="#2f8f1f" stroke-width="0.8"/>
+    <text class="toggle" x="270" y="185" text-anchor="middle">SHUF</text>
+  </g>
+  <g data-za="repeat"><title>Repeat</title>
+    <rect x="294" y="176" width="36" height="12" rx="6" fill="#031a01" stroke="#2f8f1f" stroke-width="0.8"/>
+    <text class="toggle" x="312" y="185" text-anchor="middle">RPT</text>
+  </g>
+  <g data-za="skins"><title>Skin Browser</title>
+    <rect x="336" y="176" width="36" height="12" rx="6" fill="#031a01" stroke="#2f8f1f" stroke-width="0.8"/>
+    <text class="toggle" x="354" y="185" text-anchor="middle" fill="#7fd65a">SKIN</text>
+  </g>
+  <g data-za="close"><title>Hide</title>
+    <circle cx="388" cy="114" r="7" fill="#031a01" stroke="#7dff3c" stroke-opacity="0.6"/>
+    <path d="M385 111 l6 6 M391 111 l-6 6" stroke="#9dff6a" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+</svg>

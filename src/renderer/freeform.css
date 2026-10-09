@@ -1,0 +1,34 @@
+/* Freeform skins: only painted SVG shapes take the mouse, so transparent
+   areas fall through to the desktop. */
+.za-root {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.za-skin {
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.za-skin * {
+  pointer-events: visiblePainted;
+}
+
+/* The vis is decoration; let clicks reach whatever is beneath it. */
+.za-skin .za-vis,
+.za-skin .za-vis * {
+  pointer-events: none;
+}
+
+/* Generic feedback; skins can override with their own CSS. */
+.za-skin .za-button:hover {
+  filter: brightness(1.15);
+}
+
+.za-skin .za-pressed {
+  filter: brightness(0.8);
+}

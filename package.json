@@ -1,0 +1,87 @@
+{
+  "name": "zellamp",
+  "productName": "Zellamp",
+  "version": "0.1.0",
+  "description": "Zellamp: a Winamp-skinned desktop remote and visualizer for the Spotify macOS app",
+  "main": "out/main/index.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev --watch",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dist": "electron-vite build && electron-builder --mac --arm64",
+    "themes": "node scripts/extract-base-skin.mjs && electron scripts/themes/build-themes.cjs && node scripts/freeform/sync.mjs",
+    "dmg-background": "node scripts/extract-base-skin.mjs && electron scripts/dmg/build-background.cjs",
+    "skins": "node scripts/freeform/sync.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.7",
+    "webamp": "2.3.1"
+  },
+  "build": {
+    "appId": "com.andrewzell.zellamp",
+    "productName": "Zellamp",
+    "files": [
+      "out/**/*"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.music",
+      "hardenedRuntime": true,
+      "entitlements": "resources/entitlements.mac.plist",
+      "entitlementsInherit": "resources/entitlements.mac.plist",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Zellamp controls playback in the Spotify app.",
+        "NSAudioCaptureUsageDescription": "Zellamp listens to system audio to drive the spectrum visualizer.",
+        "NSScreenCaptureUsageDescription": "Screen capture permission is required by macOS to access system audio for the visualizer."
+      },
+      "icon": "resources/icon.png",
+      "identity": "-"
+    },
+    "directories": {
+      "buildResources": "resources",
+      "output": "dist"
+    },
+    "dmg": {
+      "title": "Zellamp",
+      "background": "resources/dmg/background.tiff",
+      "iconSize": 96,
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 150,
+          "y": 250,
+          "type": "file"
+        },
+        {
+          "x": 390,
+          "y": 250,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "resources/themes",
+        "to": "themes",
+        "filter": [
+          "*.wsz",
+          "*.svg",
+          "themes.json"
+        ]
+      }
+    ],
+    "afterSign": "scripts/sign.cjs"
+  }
+}

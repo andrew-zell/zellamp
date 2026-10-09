@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="230" viewBox="0 0 440 230"
+  data-za-id="liquid-chrome" data-za-name="Liquid Chrome"
+  data-za-description="A molten chrome blob with an aqua glass eye, volume ring, and a sunken LCD. Peak deviantArt, circa 2002."
+  data-za-panel="graphite-pro">
+  <defs>
+    <linearGradient id="chrome" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.16" stop-color="#d5dbe2"/>
+      <stop offset="0.38" stop-color="#7a838e"/>
+      <stop offset="0.5" stop-color="#2e343b"/>
+      <stop offset="0.56" stop-color="#9ca5af"/>
+      <stop offset="0.72" stop-color="#eef1f4"/>
+      <stop offset="0.88" stop-color="#9aa2ac"/>
+      <stop offset="1" stop-color="#4b525a"/>
+    </linearGradient>
+    <linearGradient id="chromeDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a4048"/>
+      <stop offset="0.5" stop-color="#9aa3ad"/>
+      <stop offset="1" stop-color="#e9edf1"/>
+    </linearGradient>
+    <linearGradient id="pill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#c3cad2"/>
+      <stop offset="0.55" stop-color="#8a939d"/>
+      <stop offset="1" stop-color="#dfe4e9"/>
+    </linearGradient>
+    <radialGradient id="aqua" cx="0.45" cy="0.4" r="0.75">
+      <stop offset="0" stop-color="#bff7ff"/>
+      <stop offset="0.3" stop-color="#31c4e6"/>
+      <stop offset="0.7" stop-color="#0a5f80"/>
+      <stop offset="1" stop-color="#02202e"/>
+    </radialGradient>
+    <linearGradient id="lcd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#03202c"/>
+      <stop offset="1" stop-color="#0a4d63"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9fbff"/>
+      <stop offset="0.5" stop-color="#22c3e8"/>
+      <stop offset="1" stop-color="#0a6f94"/>
+    </linearGradient>
+    <linearGradient id="spec" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="lcdClip"><rect x="186" y="58" width="210" height="72" rx="16"/></clipPath>
+  </defs>
+  <style>
+    .title { font: bold 12px Verdana, Tahoma, sans-serif; fill: #a8f6ff; }
+    .sub { font: 10px Verdana, Tahoma, sans-serif; fill: #4fc6e2; }
+    .tiny { font: bold 7.5px Verdana, Tahoma, sans-serif; fill: #3aa6c4; letter-spacing: 0.5px; }
+    .icon { fill: #0b6f92; }
+    .za-on .lamp { fill: #6ff0ff; filter: url(#glow); }
+    .pause-icon { display: none; }
+    .za-playing .pause-icon { display: inline; }
+    .za-playing .play-icon { display: none; }
+  </style>
+
+  <!-- Body: one molten blob -->
+  <g filter="url(#shadow)">
+    <path d="M70 44 C 128 8, 300 6, 384 34 C 432 52, 440 120, 418 156 C 396 196, 330 214, 250 206
+             C 196 202, 168 214, 120 214 C 50 214, 14 176, 14 128 C 14 88, 34 62, 70 44 Z"
+      fill="url(#chrome)" stroke="#2b3138" stroke-width="1.5"/>
+  </g>
+  <path d="M84 40 C 150 14, 290 14, 372 36 C 300 30, 160 32, 96 58 C 80 64, 70 58, 84 40 Z" fill="url(#spec)" opacity="0.9"/>
+  <path d="M40 150 C 60 196, 120 204, 170 198" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="2"/>
+
+  <!-- The eye: volume ring + aqua glass + radial spectrum -->
+  <circle cx="104" cy="122" r="74" fill="url(#chromeDark)" stroke="#23282e" stroke-width="1.5"/>
+  <circle cx="104" cy="122" r="66" fill="none" stroke="#02202e" stroke-width="7"/>
+  <circle data-za="volume" data-za-shape="ring" pathLength="100" stroke-dasharray="80 100" cx="104" cy="122" r="66" fill="none" stroke="#6ff0ff"
+    stroke-width="7" stroke-linecap="round" transform="rotate(-90 104 122)" filter="url(#glow)">
+    <title>Volume</title>
+  </circle>
+  <circle cx="104" cy="122" r="58" fill="url(#aqua)" stroke="#01161f" stroke-width="2"/>
+  <rect data-za="vis" data-za-style="radial" data-za-bars="44" data-za-inner="0.42" data-za-width="2.6"
+    data-za-colors="#ffffff,#b8f8ff,#38d0f0,#0b6f92" x="48" y="66" width="112" height="112" fill="none"/>
+  <circle cx="104" cy="122" r="27" fill="#02202e" stroke="#6ff0ff" stroke-opacity="0.5"/>
+  <text class="tiny" x="104" y="119" text-anchor="middle" data-za="volume-text" data-za-upper="">Vol 80</text>
+  <text class="tiny" x="104" y="131" text-anchor="middle" data-za="kbps">320</text>
+  <ellipse cx="94" cy="88" rx="38" ry="18" fill="url(#spec)" opacity="0.55" pointer-events="none"/>
+
+  <!-- LCD -->
+  <rect x="182" y="54" width="218" height="80" rx="20" fill="url(#chromeDark)" stroke="#23282e"/>
+  <rect x="186" y="58" width="210" height="72" rx="16" fill="url(#lcd)"/>
+  <g clip-path="url(#lcdClip)">
+    <rect data-za="vis" data-za-style="mirror" data-za-bars="32" data-za-gap="2"
+      data-za-colors="#0e5f78,#0b4d63" x="196" y="96" width="190" height="28" fill="none" opacity="0.6"/>
+    <text class="title" x="200" y="80" data-za="title" data-za-chars="22">Freeform Skins</text>
+    <text class="sub" x="200" y="96" data-za="artist" data-za-chars="22">Zellamp</text>
+    <g transform="translate(316 104) skewX(-8)" fill="#8ff2ff" filter="url(#glow)">
+      <g data-za="time" data-za-font="7seg" data-za-digit="16" data-za-ghost="0.1"/>
+    </g>
+    <rect x="186" y="58" width="210" height="30" rx="16" fill="url(#spec)" opacity="0.18" pointer-events="none"/>
+  </g>
+
+  <!-- Seek: glass tube with liquid -->
+  <g data-za="seek"><title>Seek</title>
+    <rect x="190" y="144" width="204" height="12" rx="6" fill="#02202e" stroke="#4b525a"/>
+    <rect data-za-part="track" x="192" y="146" width="200" height="8" rx="4" fill="none"/>
+    <rect data-za-part="fill" x="192" y="146" width="0" height="8" rx="4" fill="url(#liquid)" filter="url(#glow)"/>
+    <rect x="192" y="146" width="200" height="3" rx="1.5" fill="#fff" opacity="0.25" pointer-events="none"/>
+  </g>
+
+  <!-- Chrome pill buttons -->
+  <g data-za="prev"><title>Previous</title>
+    <rect x="196" y="166" width="40" height="24" rx="12" fill="url(#pill)" stroke="#3a4048"/>
+    <path class="icon" d="M208 172 h3 v12 h-3 z M224 172 v12 l-11 -6 z"/>
+  </g>
+  <g data-za="playpause"><title>Play / Pause</title>
+    <rect x="242" y="164" width="52" height="28" rx="14" fill="url(#pill)" stroke="#3a4048"/>
+    <path class="icon play-icon" d="M262 170 v16 l13 -8 z"/>
+    <path class="icon pause-icon" d="M260 171 h5 v14 h-5 z M269 171 h5 v14 h-5 z"/>
+  </g>
+  <g data-za="next"><title>Next</title>
+    <rect x="300" y="166" width="40" height="24" rx="12" fill="url(#pill)" stroke="#3a4048"/>
+    <path class="icon" d="M312 172 v12 l11 -6 z M325 172 h3 v12 h-3 z"/>
+  </g>
+  <g data-za="stop"><title>Stop</title>
+    <rect x="346" y="166" width="34" height="24" rx="12" fill="url(#pill)" stroke="#3a4048"/>
+    <rect class="icon" x="358" y="173" width="10" height="10" rx="1"/>
+  </g>
+
+  <!-- Top-right controls on the chrome -->
+  <g data-za="shuffle"><title>Shuffle</title>
+    <circle cx="300" cy="32" r="8" fill="url(#pill)" stroke="#3a4048"/>
+    <circle class="lamp" cx="300" cy="32" r="3.5" fill="#1c3a44"/>
+  </g>
+  <text class="tiny" x="300" y="49" text-anchor="middle" fill="#2b3138">SHF</text>
+  <g data-za="repeat"><title>Repeat</title>
+    <circle cx="324" cy="32" r="8" fill="url(#pill)" stroke="#3a4048"/>
+    <circle class="lamp" cx="324" cy="32" r="3.5" fill="#1c3a44"/>
+  </g>
+  <text class="tiny" x="324" y="49" text-anchor="middle" fill="#2b3138">RPT</text>
+  <g data-za="skins"><title>Skin Browser</title>
+    <circle cx="352" cy="34" r="7" fill="url(#pill)" stroke="#3a4048"/>
+    <path d="M349 34 h6 M352 31 v6" stroke="#0b6f92" stroke-width="1.6"/>
+  </g>
+  <g data-za="close"><title>Hide</title>
+    <circle cx="372" cy="38" r="7" fill="url(#pill)" stroke="#3a4048"/>
+    <path d="M369 35 l6 6 M375 35 l-6 6" stroke="#0b6f92" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+</svg>
