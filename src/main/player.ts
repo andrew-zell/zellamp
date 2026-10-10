@@ -48,6 +48,19 @@ export class PlayerWindow {
     return { dx: -Math.round(rect.x), dy: -Math.round(rect.y) }
   }
 
+  /**
+   * Cover the work area of the player's display, for an in-page drag
+   * (e.g. undocking the EQ). Returns how far the page must shift its content
+   * so nothing moves on screen; the next `layout` shrinks back.
+   */
+  expand(): { dx: number; dy: number } {
+    const b = this.win.getContentBounds()
+    // The display the player is on (where the press happened).
+    const area = screen.getDisplayMatching(b).workArea
+    this.win.setContentBounds(area)
+    return { dx: b.x - area.x, dy: b.y - area.y }
+  }
+
   /** Temporarily enlarge to the right/bottom (e.g. for a context menu). */
   grow(width: number, height: number) {
     const b = this.win.getContentBounds()

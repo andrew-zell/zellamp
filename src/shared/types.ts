@@ -53,6 +53,8 @@ export interface AppConfig {
   playerPos: Record<string, { x: number; y: number }>
   /** Player zoom (on top of Webamp's own double-size mode). */
   zoom: number
+  /** Show album art on the player. */
+  showArt: boolean
   /** Active theme id (see src/main/themes.ts). */
   theme: string
   /** Webamp window positions, keyed by window id ('main', 'equalizer', 'playlist'). */
@@ -161,11 +163,14 @@ export const IPC = {
   openSkins: 'app:open-skins',
   playerLayout: 'player:layout',
   playerGrow: 'player:grow',
+  playerExpand: 'player:expand',
   playerDragStart: 'player:drag-start',
   playerDragEnd: 'player:drag-end',
   playerSetZoom: 'player:set-zoom',
   playerZoom: 'player:zoom',
   playerContextMenu: 'player:context-menu',
+  playerSetArt: 'player:set-art',
+  playerArt: 'player:art',
   visRestart: 'vis:restart',
   setupStatus: 'setup:status',
   setupAction: 'setup:action',

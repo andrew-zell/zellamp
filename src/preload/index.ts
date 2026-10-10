@@ -48,6 +48,7 @@ const widget = {
   playerLayout: (key: string, rect: { x: number; y: number; width: number; height: number }) =>
     ipcRenderer.invoke(IPC.playerLayout, key, rect) as Promise<{ dx: number; dy: number }>,
   playerGrow: (width: number, height: number) => ipcRenderer.send(IPC.playerGrow, width, height),
+  playerExpand: () => ipcRenderer.invoke(IPC.playerExpand) as Promise<{ dx: number; dy: number }>,
   dragStart: () => ipcRenderer.send(IPC.playerDragStart),
   dragEnd: () => ipcRenderer.send(IPC.playerDragEnd),
   setZoom: (zoom: number) => ipcRenderer.send(IPC.playerSetZoom, zoom),
@@ -55,6 +56,10 @@ const widget = {
     ipcRenderer.on(IPC.playerZoom, (_e, z: number) => cb(z))
   },
   showContextMenu: () => ipcRenderer.send(IPC.playerContextMenu),
+  setShowArt: (show: boolean) => ipcRenderer.send(IPC.playerSetArt, show),
+  onShowArt: (cb: (show: boolean) => void) => {
+    ipcRenderer.on(IPC.playerArt, (_e, show: boolean) => cb(show))
+  },
   hide: () => ipcRenderer.send(IPC.hideWindow),
   /** Size a Zellamp panel window to PANEL_SIZE at the given zoom. */
   fitPanel: (scale: number) => ipcRenderer.send(IPC.panelFit, scale),

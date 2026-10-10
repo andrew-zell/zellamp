@@ -51,6 +51,7 @@
       <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.55"/>
     </filter>
     <clipPath id="screenClip"><rect x="42" y="96" width="176" height="156" rx="20"/></clipPath>
+    <filter id="artTint"><feColorMatrix type="matrix" values="0.213 0.715 0.072 0 0  0.047 0.157 0.016 0 0  0.026 0.086 0.009 0 0  0 0 0 1 0"/></filter>
   </defs>
   <style>
     .lcd { font: 11px 'Andale Mono', Menlo, monospace; fill: #ff4a32; }
@@ -94,6 +95,8 @@
   <rect x="36" y="90" width="188" height="168" rx="26" fill="url(#bevel)" stroke="#000"/>
   <rect x="42" y="96" width="176" height="156" rx="20" fill="url(#screen)"/>
   <g clip-path="url(#screenClip)">
+    <image data-za="art" x="42" y="96" width="176" height="156" preserveAspectRatio="xMidYMid slice"
+      filter="url(#artTint)" opacity="0.3"/>
     <rect x="42" y="96" width="176" height="156" fill="url(#scan)"/>
     <text class="brand" x="130" y="114" text-anchor="middle">ZELLAMP</text>
     <g transform="translate(82 124) skewX(-7)" fill="#ff3a24" filter="url(#glow)">

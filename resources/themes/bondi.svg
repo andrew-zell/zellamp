@@ -40,6 +40,14 @@
     </filter>
     <clipPath id="bubbleClip"><circle cx="150" cy="150" r="140"/></clipPath>
     <clipPath id="lcdClip"><circle cx="150" cy="140" r="74"/></clipPath>
+    <filter id="artTint">
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.70" intercept="0.11"/>
+        <feFuncG type="linear" slope="0.74" intercept="0.16"/>
+        <feFuncB type="linear" slope="0.62" intercept="0.07"/>
+      </feComponentTransfer>
+    </filter>
   </defs>
   <style>
     .lcd { font: 10px 'Andale Mono', Menlo, monospace; fill: #1d2a12; }
@@ -66,6 +74,8 @@
     stroke-width="5" stroke-linecap="round" transform="rotate(-90 150 140)"><title>Seek</title></circle>
   <circle cx="150" cy="140" r="74" fill="url(#lcd)" stroke="#6f8f55"/>
   <g clip-path="url(#lcdClip)">
+    <image data-za="art" x="76" y="66" width="148" height="148" preserveAspectRatio="xMidYMid slice"
+      filter="url(#artTint)" opacity="0.45" style="mix-blend-mode: multiply"/>
     <g transform="translate(117 94)" fill="#1d2a12">
       <g data-za="time" data-za-font="7seg" data-za-digit="22" data-za-ghost="0.1"/>
     </g>

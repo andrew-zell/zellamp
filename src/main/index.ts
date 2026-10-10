@@ -184,6 +184,23 @@ function setZoom(zoom: number) {
   refreshMenus()
 }
 
+function setShowArt(show: boolean) {
+  config.showArt = show
+  saveConfig(config)
+  win?.webContents.send(IPC.playerArt, show)
+  refreshMenus()
+}
+
+function artMenuItem(withShortcut: boolean): MenuItemConstructorOptions {
+  return {
+    label: 'Show Album Art',
+    type: 'checkbox',
+    checked: config.showArt,
+    accelerator: withShortcut ? 'CmdOrCtrl+Shift+A' : undefined,
+    click: (item) => setShowArt(item.checked),
+  }
+}
+
 function stepZoom(dir: 1 | -1) {
   const i = ZOOM_LEVELS.findIndex((z) => z === config.zoom)
   setZoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, Math.max(0, (i < 0 ? 0 : i) + dir))])
@@ -243,6 +260,7 @@ function widgetMenuItems(): MenuItemConstructorOptions[] {
     },
     { label: 'Install Skin…', click: () => void pickSkin() },
     { label: 'Zoom', submenu: zoomMenuItems(false) },
+    artMenuItem(false),
     { label: 'Setup Assistant…', click: openSetup },
     {
       label: 'Reset Window Positions',
@@ -272,7 +290,7 @@ function refreshMenus() {
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       { role: 'appMenu' },
-      { label: 'View', submenu: zoomMenuItems(true) },
+      { label: 'View', submenu: [artMenuItem(true), { type: 'separator' }, ...zoomMenuItems(true)] },
       {
         label: 'Controls',
         submenu: [
@@ -564,6 +582,8 @@ function registerIpc() {
     if (isNum(w) && isNum(h)) player?.grow(w, h)
   })
   ipcMain.on(IPC.playerDragStart, () => player?.dragStart())
+  ipcMain.handle(IPC.playerExpand, () => player?.expand() ?? { dx: 0, dy: 0 })
+  ipcMain.on(IPC.playerSetArt, (_e, show: unknown) => setShowArt(Boolean(show)))
   ipcMain.on(IPC.playerSetZoom, (_e, z: unknown) => {
     if (isNum(z)) setZoom(z)
   })
@@ -573,6 +593,7 @@ function registerIpc() {
     Menu.buildFromTemplate([
       { label: 'Skin Browser…', click: openGallery },
       { label: 'Zoom', submenu: zoomMenuItems(false) },
+      artMenuItem(false),
       {
         label: 'Always on Top',
         type: 'checkbox',

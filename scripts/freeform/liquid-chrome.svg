@@ -51,6 +51,8 @@
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <clipPath id="lcdClip"><rect x="186" y="58" width="210" height="72" rx="16"/></clipPath>
+    <clipPath id="artClip"><circle cx="104" cy="122" r="57"/></clipPath>
+    <filter id="artTint"><feColorMatrix type="matrix" values="0.096 0.322 0.032 0 0  0.202 0.679 0.069 0 0  0.213 0.715 0.072 0 0  0 0 0 1 0"/></filter>
   </defs>
   <style>
     .title { font: bold 12px Verdana, Tahoma, sans-serif; fill: #a8f6ff; }
@@ -80,6 +82,8 @@
     <title>Volume</title>
   </circle>
   <circle cx="104" cy="122" r="58" fill="url(#aqua)" stroke="#01161f" stroke-width="2"/>
+  <image data-za="art" x="46" y="64" width="116" height="116" preserveAspectRatio="xMidYMid slice"
+    clip-path="url(#artClip)" filter="url(#artTint)" opacity="0.55"/>
   <rect data-za="vis" data-za-style="radial" data-za-bars="44" data-za-inner="0.42" data-za-width="2.6"
     data-za-colors="#ffffff,#b8f8ff,#38d0f0,#0b6f92" x="48" y="66" width="112" height="112" fill="none"/>
   <circle cx="104" cy="122" r="27" fill="#02202e" stroke="#6ff0ff" stroke-opacity="0.5"/>

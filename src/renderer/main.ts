@@ -1,6 +1,8 @@
 import Webamp from 'webamp'
 import type { HitRegion, SpotifyState, ThemePayload, WindowLayoutEntry } from '../shared/types'
+import { ArtPanel } from './artPanel'
 import { FreeformPlayer } from './freeform'
+import { kitThemeId, loadKit } from './skinKit'
 import { SpotifyMedia } from './spotifyMedia'
 import { VisSource } from './visSource'
 import './style.css'
@@ -24,7 +26,19 @@ type MiddlewareStore = { getState: () => any; dispatch: (a: Action) => unknown }
  * Sits after Webamp's media middleware. Keeps the single-track playlist intact
  * and forwards shuffle/repeat toggles (which the media middleware ignores).
  */
+// Webamp follows every resize with an "ensure windows are on screen" pass.
+// Zellamp sizes the window to the player itself (and shifts the windows to
+// match), so that pass only fights it: swallow the reposition it dispatches
+// in the same tick as the size change.
+let suppressReposition = false
+
 const guardMiddleware = (store: MiddlewareStore) => (next: (a: Action) => unknown) => (action: Action) => {
+  if (action.type === 'BROWSER_WINDOW_SIZE_CHANGED') {
+    suppressReposition = true
+    queueMicrotask(() => (suppressReposition = false))
+  } else if (action.type === 'UPDATE_WINDOW_POSITIONS' && suppressReposition) {
+    return action
+  }
   const media = SpotifyMedia.instance
   if (ready && !media?.syncing) {
     switch (action.type) {
@@ -65,7 +79,8 @@ async function main() {
     initialTracks: [{ url: PLACEHOLDER_URL, metaData: { title: 'Connecting to Spotify…', artist: '' }, duration: 0 }],
     initialSkin: savedSkin?.kind === 'classic' ? { url: blobUrl(savedSkin.data) } : undefined,
     windowLayout: config.layout ? toWindowLayout(config.layout) : undefined,
-    enableDoubleSizeMode: true,
+    // Zellamp's Zoom replaces Webamp's double-size mode.
+    enableDoubleSizeMode: false,
     enableHotkeys: false,
     enableMediaSession: false,
     zIndex: 10,
@@ -76,7 +91,6 @@ async function main() {
     handleSaveListEvent: () => null,
     __customMediaClass: SpotifyMedia as never,
     __customMiddlewares: [guardMiddleware as never],
-    __initialState: config.doubled ? ({ display: { doubled: true } } as never) : undefined,
   })
 
   webampRef = webamp
@@ -90,6 +104,9 @@ async function main() {
   const sync = new RemoteSync(webamp, media)
   const skins = new SkinSwitcher(webamp)
   skins.setZoom(config.zoom ?? 1)
+  skins.setShowArt(config.showArt ?? true)
+  window.widget.onShowArt((show) => skins.setShowArt(show))
+  watchDevicePixelRatio(() => skins.setZoom(config.zoom ?? 1))
   window.widget.onZoom((z) => skins.setZoom(z))
   if (import.meta.env.DEV) Object.assign(window, { __skins: skins, __vis: vis })
   const onState = (s: SpotifyState) => {
@@ -101,10 +118,14 @@ async function main() {
   skins.show(savedSkin, false)
 
   interceptTransportClicks()
-  interceptWindowDrags(skins)
+  interceptWindowDrags(webamp, skins)
   watchWebampLayout(webamp, skins)
-  addZoomToWebampMenu(() => config.zoom)
+  addZoomToWebampMenu(
+    () => config.zoom,
+    () => config.showArt ?? true,
+  )
   window.widget.onZoom((z) => (config.zoom = z))
+  window.widget.onShowArt((show) => (config.showArt = show))
   reportHitRegions(webamp, skins)
   persistLayout(webamp)
   persistSkins()
@@ -140,7 +161,7 @@ let captureStarted = false
 
 /** Margin around the player for drop shadows. */
 const PAD = 10
-const WEBAMP_WINDOWS = '#main-window, #equalizer-window, #playlist-window, .gen-window'
+const WEBAMP_WINDOWS = '#main-window, #equalizer-window, #playlist-window, .gen-window, #za-art:not([hidden])'
 
 /**
  * Swaps between Webamp (classic .wsz skins) and a freeform SVG player, and
@@ -155,7 +176,9 @@ class SkinSwitcher {
   private pending = false
   private dragging = false
   private menuOpen = false
-  private zoom = 1
+  zoom = 1
+  private showArt = true
+  readonly art = new ArtPanel()
   /** Called when the player appears, moves, or goes away. */
   onChange: () => void = () => {}
 
@@ -174,13 +197,22 @@ class SkinSwitcher {
 
   private applyZoom() {
     const webampEl = document.getElementById('webamp')
-    if (webampEl) webampEl.style.zoom = String(this.zoom)
+    if (webampEl) applyPixelZoom(webampEl, this.zoom, () => void this.relayout())
+    // Vector skins scale cleanly at any size.
     if (this.freeform) this.freeform.root.style.zoom = String(this.zoom)
   }
 
   setState(s: SpotifyState) {
     this.state = s
     this.freeform?.setState(s)
+    this.art.setState(s)
+  }
+
+  setShowArt(show: boolean) {
+    this.showArt = show
+    this.art.setShow(show)
+    this.freeform?.setShowArt(show)
+    void this.relayout()
   }
 
   show(skin: ThemePayload | null, fromUser: boolean) {
@@ -204,6 +236,8 @@ class SkinSwitcher {
           { x: PAD, y: PAD },
         )
         if (this.state) this.freeform.setState(this.state)
+        this.freeform.setShowArt(this.showArt)
+        this.art.setActive(false)
         this.applyZoom()
         this.key = skin.id
         this.onChange()
@@ -215,9 +249,24 @@ class SkinSwitcher {
     }
     if (webampEl) webampEl.style.display = ''
     if (skin?.kind === 'classic' && fromUser) this.webamp.setSkinFromUrl(blobUrl(skin.data))
+    this.art.setActive(true)
+    void this.loadArtFrame(skin)
     this.key = 'classic'
     this.onChange()
     void this.relayout()
+  }
+
+  /** Frame the classic art panel in the skin's own chrome colors. */
+  private async loadArtFrame(skin: ThemePayload | null) {
+    try {
+      const { themes, active } = await window.themes.list()
+      const read = (id: string) => window.themes.read(id) as Promise<Uint8Array<ArrayBuffer> | null>
+      const data = skin?.kind === 'classic' ? (skin.data as Uint8Array<ArrayBuffer>) : await read(kitThemeId(themes, active))
+      const kit = await loadKit(data, () => read('classic'))
+      this.art.setColors(kit.colors)
+    } catch {
+      // Keep the default frame.
+    }
   }
 
   /** Size the window to what's drawn (plus shadow margin). */
@@ -233,6 +282,7 @@ class SkinSwitcher {
         const r = this.freeform.hitRegion()
         rect = { x: 0, y: 0, width: r.x + r.w + PAD, height: r.y + r.h + PAD }
       } else {
+        this.art.place()
         const boxes = [...document.querySelectorAll(WEBAMP_WINDOWS)]
           .map((el) => el.getBoundingClientRect())
           .filter((r) => r.width > 0 && r.height > 0)
@@ -249,7 +299,13 @@ class SkinSwitcher {
       // The window moved by -dx/-dy on screen; shift Webamp's windows back so
       // nothing visibly jumps.
       // Webamp positions are in its own (unzoomed) pixels.
-      if (!this.freeform && (dx || dy)) shiftWebampWindows(this.webamp, dx / this.zoom, dy / this.zoom)
+      if (!this.freeform && (dx || dy)) {
+        shiftWebampWindows(this.webamp, dx / this.zoom, dy / this.zoom)
+        // React applies the move on a later frame; measuring again before
+        // then would see stale positions and shift everything twice.
+        await nextFrames(2)
+        this.art.place()
+      }
     } finally {
       this.laying = false
       if (this.pending) {
@@ -262,6 +318,34 @@ class SkinSwitcher {
   dragStart() {
     this.dragging = true
     window.widget.dragStart()
+  }
+
+  /** Grow to the whole display for an in-page Webamp drag; returns the content shift. */
+  async expandForDrag() {
+    this.dragging = true
+    const before = [innerWidth, innerHeight].join()
+    const { dx, dy } = await window.widget.playerExpand()
+    // Wait for the page to see its new size (a few frames at most).
+    for (let i = 0; i < 20 && [innerWidth, innerHeight].join() === before; i++) {
+      await new Promise((r) => requestAnimationFrame(r))
+    }
+    if (dx || dy) {
+      shiftWebampWindows(this.webamp, dx / this.zoom, dy / this.zoom)
+      await nextFrames(2)
+    }
+    // Webamp keeps dragged windows inside its idea of the page size, which it
+    // only updates on resize events; set it now, in its unzoomed pixels.
+    this.webamp.store.dispatch({
+      type: 'BROWSER_WINDOW_SIZE_CHANGED',
+      width: innerWidth / this.zoom,
+      height: innerHeight / this.zoom,
+    } as never)
+    return { dx, dy }
+  }
+
+  endExpandedDrag() {
+    this.dragging = false
+    void this.relayout()
   }
 
   dragEnd() {
@@ -279,6 +363,57 @@ class SkinSwitcher {
   }
 }
 
+/**
+ * Scale pixel art. When zoom × devicePixelRatio is a whole number (100/200/300%
+ * anywhere, 150% on Retina) nearest-neighbor is exact. Otherwise (150% on a
+ * standard display) each skin pixel would be 1.5 screen pixels, which comes
+ * out uneven; instead render at a whole multiple with hard pixels and shrink
+ * smoothly ("sharp bilinear"): crisp edges, evenly distributed softening.
+ */
+function applyPixelZoom(el: HTMLElement, zoom: number, applied: () => void) {
+  const device = zoom * devicePixelRatio
+  if (Number.isInteger(device)) {
+    el.style.zoom = String(zoom)
+    el.style.transform = ''
+    el.style.willChange = ''
+    return applied()
+  }
+  // e.g. 1.5 → render at 3 device px per skin pixel, then scale by 0.5.
+  const k = Number.isInteger(device * 2) ? device * 2 : Math.ceil(device)
+  const renderZoom = k / devicePixelRatio
+  el.style.zoom = String(renderZoom)
+  el.style.transformOrigin = '0 0'
+  // Rasterize at the full render size first, then shrink on the compositor
+  // (will-change keeps that raster instead of re-rasterizing at 1.5x).
+  el.style.willChange = 'transform'
+  el.style.transform = 'scale(1)'
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      el.style.transform = `scale(${zoom / renderZoom})`
+      applied()
+    }),
+  )
+}
+
+// Re-pick the scaling mode when the player moves to a display with a
+// different pixel density.
+function watchDevicePixelRatio(onChange: () => void) {
+  const watch = () =>
+    matchMedia(`(resolution: ${devicePixelRatio}dppx)`).addEventListener(
+      'change',
+      () => {
+        onChange()
+        watch()
+      },
+      { once: true },
+    )
+  watch()
+}
+
+const nextFrames = async (n: number) => {
+  for (let i = 0; i < n; i++) await new Promise((r) => requestAnimationFrame(r))
+}
+
 function shiftWebampWindows(webamp: Webamp, dx: number, dy: number) {
   const positions: Record<string, { x: number; y: number }> = {}
   for (const [id, w] of Object.entries(webamp.store.getState().windows.genWindows)) {
@@ -287,24 +422,109 @@ function shiftWebampWindows(webamp: Webamp, dx: number, dy: number) {
   webamp.store.dispatch({ type: 'UPDATE_WINDOW_POSITIONS', positions, absolute: true } as never)
 }
 
+/** True if every open Webamp window is docked (edge-to-edge) to the main one. */
+function webampDocked() {
+  const rects = [...document.querySelectorAll(WEBAMP_WINDOWS)]
+    .map((el) => ({ id: el.id, r: el.getBoundingClientRect() }))
+    .filter(({ r }) => r.width > 0 && r.height > 0)
+  const touches = (a: DOMRect, b: DOMRect) =>
+    a.left <= b.right + 1 && b.left <= a.right + 1 && a.top <= b.bottom + 1 && b.top <= a.bottom + 1
+  const start = rects.find((w) => w.id === 'main-window') ?? rects[0]
+  if (!start) return true
+  const seen = new Set([start])
+  const queue = [start]
+  while (queue.length) {
+    const cur = queue.shift()!
+    for (const w of rects) if (!seen.has(w) && touches(cur.r, w.r)) seen.add(w) && queue.push(w)
+  }
+  return seen.size === rects.length
+}
+
 /**
- * Dragging any Webamp title bar / window chrome moves the whole player
- * window (main follows the cursor), so it can cross displays. Webamp's own
- * in-page drag can't leave a window sized to the player.
+ * Two kinds of Webamp window drags:
+ * - main window while everything's docked: move the whole player window
+ *   (main follows the cursor, so it can cross displays);
+ * - anything else (undocking the EQ/playlist, moving an undocked window):
+ *   expand the window to this display, then let Webamp's own drag run, with
+ *   its window-to-window snapping. On release the window shrinks back.
  */
-function interceptWindowDrags(skins: SkinSwitcher) {
+function interceptWindowDrags(webamp: Webamp, skins: SkinSwitcher) {
+  let replaying = false
+  // Webamp moves a dragged window by the raw mouse delta, but its windows are
+  // zoomed, so at 200% they'd move twice as fast as the cursor. While Webamp
+  // drags, re-send mouse moves scaled down by the zoom.
+  let scaled: { x: number; y: number; zoom: number } | null = null
+  window.addEventListener(
+    'mousemove',
+    (e) => {
+      if (!scaled || replaying || scaled.zoom === 1) return
+      e.stopPropagation()
+      replaying = true
+      window.dispatchEvent(
+        new MouseEvent('mousemove', {
+          clientX: scaled.x + (e.clientX - scaled.x) / scaled.zoom,
+          clientY: scaled.y + (e.clientY - scaled.y) / scaled.zoom,
+          screenX: e.screenX,
+          screenY: e.screenY,
+          buttons: e.buttons,
+        }),
+      )
+      replaying = false
+    },
+    true,
+  )
   window.addEventListener(
     'mousedown',
     (e) => {
+      if (replaying) return
       const target = e.target as Element
+      if (e.button === 0 && target.closest?.('#za-art')) {
+        e.preventDefault()
+        skins.dragStart()
+        window.addEventListener('mouseup', () => skins.dragEnd(), { once: true, capture: true })
+        return
+      }
       if (e.button !== 0 || !target.classList?.contains('draggable') || !target.closest('#webamp')) return
+      const onMain = !!target.closest('#main-window')
       e.stopPropagation()
-      skins.dragStart()
-      window.addEventListener('mouseup', () => skins.dragEnd(), { once: true, capture: true })
+      e.preventDefault()
+      if (onMain && webampDocked()) {
+        skins.dragStart()
+        window.addEventListener('mouseup', () => skins.dragEnd(), { once: true, capture: true })
+        return
+      }
+      void (async () => {
+        const { dx, dy } = await skins.expandForDrag()
+        // Replay the press so Webamp starts its own drag at the shifted spot.
+        replaying = true
+        target.dispatchEvent(
+          new MouseEvent('mousedown', {
+            bubbles: true,
+            cancelable: true,
+            clientX: e.clientX + dx,
+            clientY: e.clientY + dy,
+            screenX: e.screenX,
+            screenY: e.screenY,
+            button: 0,
+            buttons: 1,
+          }),
+        )
+        replaying = false
+        scaled = { x: e.clientX + dx, y: e.clientY + dy, zoom: skins.zoom }
+        window.addEventListener(
+          'mouseup',
+          () => {
+            scaled = null
+            skins.endExpandedDrag()
+          },
+          { once: true },
+        )
+      })()
     },
     true,
   )
   window.addEventListener('blur', () => skins.dragEnd())
+  void webamp
 }
 
 /**
@@ -312,7 +532,7 @@ function interceptWindowDrags(skins: SkinSwitcher) {
  * menu is plain DOM (li / li.parent > ul, submenus open on hover), so new
  * items are appended whenever a menu appears.
  */
-function addZoomToWebampMenu(currentZoom: () => number) {
+function addZoomToWebampMenu(currentZoom: () => number, showingArt: () => boolean) {
   const item = (label: string, onClick: () => void, checked = false) => {
     const li = document.createElement('li')
     li.textContent = label
@@ -332,7 +552,12 @@ function addZoomToWebampMenu(currentZoom: () => number) {
     const sub = document.createElement('ul')
     for (const z of [1, 1.5, 2, 3]) sub.append(item(`${z * 100}%`, () => window.widget.setZoom(z), currentZoom() === z))
     zoom.append(sub, 'Zoom')
-    menu.append(hr, zoom, item('Skin Browser...', () => window.widget.openSkins()))
+    menu.append(
+      hr,
+      zoom,
+      item('Show Album Art', () => window.widget.setShowArt(!showingArt()), showingArt()),
+      item('Skin Browser...', () => window.widget.openSkins()),
+    )
   }).observe(document.body, { childList: true, subtree: true })
 }
 
@@ -340,6 +565,7 @@ function addZoomToWebampMenu(currentZoom: () => number) {
 function watchWebampLayout(webamp: Webamp, skins: SkinSwitcher) {
   let lastKey = ''
   const check = () => {
+    skins.art.place()
     const menus = [...document.querySelectorAll('#webamp-context-menu ul')].map((m) => m.getBoundingClientRect())
     const open = menus.some((r) => r.width > 0)
     if (open) {
@@ -511,6 +737,7 @@ function reportHitRegions(webamp: Webamp, skins: SkinSwitcher) {
     const webampEl = document.getElementById('webamp')
     if (webampEl && webampEl.style.display !== 'none') {
       webampEl.querySelectorAll('#main-window, #equalizer-window, #playlist-window, .gen-window').forEach(add)
+      document.querySelectorAll('#za-art:not([hidden])').forEach(add)
     }
     // Webamp's right-click menus (and their submenus) live outside the windows.
     document.querySelectorAll('#webamp-context-menu ul').forEach(add)

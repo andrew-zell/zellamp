@@ -121,8 +121,12 @@
     <path d="M14 126 C 60 104, 140 108, 204 130 V142 H14 Z" fill="url(#hill)"/>
     <rect data-za="vis" data-za-style="bars" data-za-bars="24" data-za-gap="2" data-za-peak="#ffffff"
       data-za-colors="#ffffff,#e9f6ff,#bfe2ff" x="22" y="96" width="174" height="40" fill="none" opacity="0.85"/>
-    <text class="track" x="24" y="64" data-za="title" data-za-chars="24" filter="url(#textShadow)">Freeform Skins</text>
-    <text class="artist" x="24" y="80" data-za="artist" data-za-chars="28" filter="url(#textShadow)">Zellamp</text>
+    <text class="track za-no-art" x="24" y="64" data-za="title" data-za-chars="24" filter="url(#textShadow)">Freeform Skins</text>
+    <text class="artist za-no-art" x="24" y="80" data-za="artist" data-za-chars="28" filter="url(#textShadow)">Zellamp</text>
+    <rect class="za-art-only" x="21" y="45" width="58" height="58" fill="#fff" filter="url(#shadow)"/>
+    <image data-za="art" x="22" y="46" width="56" height="56" preserveAspectRatio="xMidYMid slice"/>
+    <text class="track za-art-only" x="88" y="62" data-za="title" data-za-chars="15" filter="url(#textShadow)">Freeform Skins</text>
+    <text class="artist za-art-only" x="88" y="78" data-za="artist" data-za-chars="17" filter="url(#textShadow)">Zellamp</text>
   </g>
   <rect x="14" y="38" width="190" height="104" rx="4" fill="none" stroke="#7f9db9"/>
   <rect x="14.5" y="38.5" width="189" height="40" rx="4" fill="url(#gloss)" opacity="0.25" pointer-events="none"/>

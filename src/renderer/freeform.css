@@ -32,3 +32,20 @@
 .za-skin .za-pressed {
   filter: brightness(0.8);
 }
+
+/* Album art: skins place [data-za="art"] images; shown only when the toggle
+   is on and the track has art. .za-art-only / .za-no-art let a skin swap
+   layouts (e.g. shift text over to make room). */
+.za-skin [data-za='art'],
+.za-skin .za-art-only {
+  display: none;
+}
+
+.za-skin.za-art-on.za-has-art [data-za='art'],
+.za-skin.za-art-on.za-has-art .za-art-only {
+  display: inline;
+}
+
+.za-skin.za-art-on.za-has-art .za-no-art {
+  display: none;
+}

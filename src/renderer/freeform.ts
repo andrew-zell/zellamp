@@ -440,6 +440,10 @@ export class FreeformPlayer {
     document.addEventListener('visibilitychange', this.kickVis)
   }
 
+  setShowArt(show: boolean) {
+    this.svg.classList.toggle('za-art-on', show)
+  }
+
   /** Where the player is, for main's click-through hit testing. */
   hitRegion(): HitRegion {
     // Rendered box, so it reflects the player's zoom.
@@ -496,8 +500,9 @@ export class FreeformPlayer {
     cls.toggle('za-repeat', s.repeating)
     cls.toggle('za-offline', !live)
     for (const t of this.toggles) t.el.classList.toggle('za-on', t.key === 'shuffle' ? s.shuffling : s.repeating)
+    const url = live ? s.track?.artworkUrl : ''
+    cls.toggle('za-has-art', !!url)
     for (const art of this.arts) {
-      const url = s.track?.artworkUrl
       if (url && art.getAttribute('href') !== url) art.setAttribute('href', url)
     }
     for (const sl of this.sliders) {
