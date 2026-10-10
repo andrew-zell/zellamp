@@ -23,7 +23,36 @@ interface Step {
   actions: (s: SetupStatus) => [string, SetupAction][]
 }
 
-const STEPS: Step[] = [
+// Windows needs no permissions: control goes through the system media
+// session and loopback audio capture just works.
+const WINDOWS_STEPS: Step[] = [
+  {
+    title: 'Welcome',
+    mark: () => null,
+    body: () =>
+      'Zellamp is a remote and visualizer for whatever is playing on your PC: the Spotify app, or a browser player like YouTube Music. Your player does the playing. Zellamp gives it a classic skin.',
+    actions: () => [],
+  },
+  {
+    title: 'Player',
+    mark: (s) => (s.control === 'granted' ? 'ok' : 'todo'),
+    body: () =>
+      'Zellamp follows Spotify when it is open, otherwise whatever Windows shows in its media controls (the panel above the volume flyout). Start playing something and it will appear.',
+    status: (s) => (s.control === 'granted' ? 'Connected.' : 'Nothing is playing yet.'),
+    actions: (s) => (s.control === 'granted' ? [] : [['Open Spotify', 'open-spotify']]),
+  },
+  {
+    title: 'Visualizer',
+    mark: (s) => (s.visualizer === 'live' ? 'ok' : 'optional'),
+    body: () =>
+      "The visualizer listens to your PC's audio output. No setup needed on Windows.",
+    status: (s) =>
+      s.visualizer === 'live' ? 'Live: the visualizer hears your audio.' : 'Using the simulated visualizer.',
+    actions: (s) => (s.visualizer === 'live' ? [] : [['Retry', 'request-visualizer']]),
+  },
+]
+
+const MAC_STEPS: Step[] = [
   {
     title: 'Welcome',
     mark: () => null,
@@ -105,14 +134,25 @@ const STEPS: Step[] = [
   {
     title: 'Done',
     mark: () => null,
-    body: () =>
-      "You're set. Press Cmd+T any time for the skin browser, and drop any classic Winamp .wsz skin onto it to install it.\n\n" +
-      'This assistant stays in the Widget menu if you need it again.',
+    body: (s) =>
+      (s.platform === 'win32'
+        ? "You're set. Right-click the player or use the tray icon for the skin browser, zoom and album art. Drop any classic Winamp .wsz skin onto the skin browser to install it.\n\n"
+        : "You're set. Press Cmd+T any time for the skin browser, and drop any classic Winamp .wsz skin onto it to install it.\n\n") +
+      'This assistant stays in the tray menu if you need it again.',
     actions: () => [['Skin Browser', 'open-skins']],
   },
 ]
 
-let status: SetupStatus = { spotify: 'running', control: 'unknown', visualizer: 'starting', screenAccess: 'unknown' }
+let status: SetupStatus = {
+  spotify: 'running',
+  control: 'unknown',
+  visualizer: 'starting',
+  platform: 'darwin',
+  screenAccess: 'unknown',
+}
+const DONE_STEP = () => MAC_STEPS[MAC_STEPS.length - 1]
+const steps = () => (status.platform === 'win32' ? [...WINDOWS_STEPS, DONE_STEP()] : MAC_STEPS)
+
 let current = 0
 let kit: SkinKit | null = null
 
@@ -130,9 +170,9 @@ function render() {
   const k = kit
   const c = k.colors
   const content = mountWindow(k, 'Zellamp Setup', () => window.close())
-  const step = STEPS[current]
+  const step = steps()[current]
 
-  const items = STEPS.map((s, i) => {
+  const items = steps().map((s, i) => {
     const mark = markText(s.mark(status))
     const name = `${i + 1} ${s.title}`
     const line = name.padEnd(22 - mark.length, ' ') + mark
@@ -157,7 +197,7 @@ function render() {
       : div(),
   )
 
-  const last = current === STEPS.length - 1
+  const last = current === steps().length - 1
   const nav = row(
     'buttons setup-nav',
     ...step.actions(status).map(([name, action]) => button(k, name, () => void act(action))),
@@ -174,7 +214,7 @@ function render() {
         }),
   )
 
-  const right = div('col col-right', label(k, `Step ${current + 1} of ${STEPS.length}`), info, nav)
+  const right = div('col col-right', label(k, `Step ${current + 1} of ${steps().length}`), info, nav)
   content.append(div('layout', left, right))
 }
 

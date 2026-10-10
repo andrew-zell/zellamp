@@ -1,5 +1,7 @@
+import { systemPreferences } from 'electron'
 import { execFile } from 'node:child_process'
-import type { Availability, PlayerState, SpotifyCommand, Track } from '../shared/types'
+import type { Availability, PlayerState, SpotifyCommand, SpotifyState } from '../../shared/types'
+import type { MediaSource, RawRead } from './types'
 
 /**
  * Thin wrapper around Spotify's AppleScript dictionary. Everything that talks
@@ -69,20 +71,6 @@ on run argv
 end run
 `
 
-export interface RawRead {
-  availability: Availability
-  state?: PlayerState
-  positionSec?: number
-  volume?: number
-  shuffling?: boolean
-  repeating?: boolean
-  trackId?: string
-  /** Only present when the track differs from the `knownTrackId` passed in. */
-  track?: Track
-  /** Epoch ms, best estimate of when Spotify sampled the position. */
-  sampledAt: number
-}
-
 // Rough time from spawn until the first Apple Event lands (process start).
 const SPAWN_LATENCY_MS = 50
 
@@ -107,8 +95,21 @@ function classifyError(err: unknown): Availability {
   return 'error'
 }
 
-export class SpotifyController {
+const NOTIFICATION = 'com.spotify.client.PlaybackStateChanged'
+
+/** macOS: the Spotify desktop app via AppleScript + distributed notifications. */
+export class MacSpotifySource implements MediaSource {
+  readonly idleText = 'Spotify is not running'
   private lastErrorLog = 0
+
+  watch(onEvent: (patch?: Partial<SpotifyState>) => void) {
+    const id = systemPreferences.subscribeNotification(NOTIFICATION, (_event, userInfo) => {
+      const info = userInfo as Record<string, unknown>
+      if (process.env.WR_DEBUG_PORT) console.log('[spotify] notification', JSON.stringify(info))
+      onEvent(parseNotification(info))
+    })
+    return () => systemPreferences.unsubscribeNotification(id)
+  }
 
   async read(knownTrackId: string | null): Promise<RawRead> {
     const startedAt = Date.now()
@@ -168,6 +169,30 @@ export class SpotifyController {
     const detail = (err as { stderr?: string })?.stderr?.trim() || String(err)
     console.warn(`[spotify] ${what} failed (${availability}): ${detail}`)
   }
+}
+
+/** Spotify's notification carries state and track; apply it before the read. */
+function parseNotification(info: Record<string, unknown>): Partial<SpotifyState> {
+  const patch: Partial<SpotifyState> = { availability: 'ok' }
+  const playerState = String(info['Player State'] ?? '').toLowerCase()
+  if (playerState === 'playing' || playerState === 'paused' || playerState === 'stopped') patch.state = playerState
+  if (typeof info['Playback Position'] === 'number') {
+    patch.positionSec = info['Playback Position'] as number
+    patch.sampledAt = Date.now()
+  }
+  const trackId = info['Track ID'] as string | undefined
+  if (trackId) {
+    patch.track = {
+      id: trackId,
+      name: String(info['Name'] ?? ''),
+      artist: String(info['Artist'] ?? ''),
+      album: String(info['Album'] ?? ''),
+      durationMs: Number(info['Duration'] ?? 0),
+      // Not in the notification; the follow-up read fills it in.
+      artworkUrl: '',
+    }
+  }
+  return patch
 }
 
 function normalizeState(s: string): PlayerState {

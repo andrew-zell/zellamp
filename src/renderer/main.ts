@@ -2,6 +2,7 @@ import Webamp from 'webamp'
 import type { HitRegion, SpotifyState, ThemePayload, WindowLayoutEntry } from '../shared/types'
 import { ArtPanel } from './artPanel'
 import { FreeformPlayer } from './freeform'
+import { PlayerMenu } from './playerMenu'
 import { kitThemeId, loadKit } from './skinKit'
 import { SpotifyMedia } from './spotifyMedia'
 import { VisSource } from './visSource'
@@ -37,6 +38,9 @@ const guardMiddleware = (store: MiddlewareStore) => (next: (a: Action) => unknow
     suppressReposition = true
     queueMicrotask(() => (suppressReposition = false))
   } else if (action.type === 'UPDATE_WINDOW_POSITIONS' && suppressReposition) {
+    return action
+  } else if (action.type === 'TOGGLE_WINDOW' && action.windowId === 'equalizer') {
+    // The EQ can't shape another app's audio; don't show one that does nothing.
     return action
   }
   const media = SpotifyMedia.instance
@@ -97,6 +101,10 @@ async function main() {
   if (import.meta.env.DEV) (window as unknown as { __webamp: Webamp }).__webamp = webamp
   await webamp.renderWhenReady(document.getElementById('app')!)
   if (config.layout) restorePositions(webamp, config.layout)
+  // First run (or after Reset Window Positions): just the main window. The
+  // playlist only ever holds the current track; it's in the right-click menu.
+  else webamp.store.dispatch({ type: 'CLOSE_WINDOW', windowId: 'playlist' } as never)
+  hideEqualizer(webamp)
   trackId = webamp.store.getState().playlist.trackOrder[0]
   ready = true
 
@@ -119,11 +127,8 @@ async function main() {
 
   interceptTransportClicks()
   interceptWindowDrags(webamp, skins)
-  watchWebampLayout(webamp, skins)
-  addZoomToWebampMenu(
-    () => config.zoom,
-    () => config.showArt ?? true,
-  )
+  const menu = installPlayerMenu(webamp)
+  watchWebampLayout(webamp, skins, menu)
   window.widget.onZoom((z) => (config.zoom = z))
   window.widget.onShowArt((show) => (config.showArt = show))
   reportHitRegions(webamp, skins)
@@ -161,6 +166,8 @@ let captureStarted = false
 
 /** Margin around the player for drop shadows. */
 const PAD = 10
+/** Open menus: ours, plus Webamp's remaining popups (e.g. the playlist's). */
+const MENUS = '#za-menu ul, #webamp-context-menu ul'
 const WEBAMP_WINDOWS = '#main-window, #equalizer-window, #playlist-window, .gen-window, #za-art:not([hidden])'
 
 /**
@@ -528,45 +535,75 @@ function interceptWindowDrags(webamp: Webamp, skins: SkinSwitcher) {
 }
 
 /**
- * Adds Zellamp items (Zoom, Skin Browser) to Webamp's right-click menu. The
- * menu is plain DOM (li / li.parent > ul, submenus open on hover), so new
- * items are appended whenever a menu appears.
+ * One right-click menu for every skin (see PlayerMenu). Takes over Webamp's
+ * own menus: right-click anywhere, the title bar's menu button, and the
+ * clutter bar's "O".
  */
-function addZoomToWebampMenu(currentZoom: () => number, showingArt: () => boolean) {
-  const item = (label: string, onClick: () => void, checked = false) => {
-    const li = document.createElement('li')
-    li.textContent = label
-    if (checked) li.className = 'checked'
-    li.addEventListener('click', onClick)
-    return li
-  }
-  new MutationObserver(() => {
-    const menu = document.querySelector<HTMLElement>('#webamp-context-menu ul.context-menu')
-    if (!menu || menu.dataset.zellamp) return
-    menu.dataset.zellamp = '1'
-    const hr = document.createElement('li')
-    hr.className = 'hr'
-    hr.append(document.createElement('hr'))
-    const zoom = document.createElement('li')
-    zoom.className = 'parent'
-    const sub = document.createElement('ul')
-    for (const z of [1, 1.5, 2, 3]) sub.append(item(`${z * 100}%`, () => window.widget.setZoom(z), currentZoom() === z))
-    zoom.append(sub, 'Zoom')
-    menu.append(
-      hr,
-      zoom,
-      item('Show Album Art', () => window.widget.setShowArt(!showingArt()), showingArt()),
-      item('Skin Browser...', () => window.widget.openSkins()),
-    )
-  }).observe(document.body, { childList: true, subtree: true })
+function installPlayerMenu(webamp: Webamp) {
+  const menu = new PlayerMenu((slot) => {
+    if (slot !== 'windows') return []
+    const webampEl = document.getElementById('webamp')
+    if (!webampEl || webampEl.style.display === 'none') return []
+    const playlistOpen = Boolean(webamp.store.getState().windows.genWindows.playlist?.open)
+    return [
+      {
+        label: 'Playlist Editor',
+        checked: playlistOpen,
+        run: () => webamp.store.dispatch({ type: 'TOGGLE_WINDOW', windowId: 'playlist' } as never),
+      },
+    ]
+  })
+  window.addEventListener(
+    'contextmenu',
+    (e) => {
+      e.preventDefault()
+      if (menu.el.contains(e.target as Node)) return
+      e.stopPropagation()
+      void menu.open(e.clientX, e.clientY)
+    },
+    true,
+  )
+  window.addEventListener(
+    'click',
+    (e) => {
+      const button = (e.target as Element | null)?.closest('#webamp #option-context, #webamp #button-o')
+      if (!button) return
+      e.stopPropagation()
+      if (menu.isOpen) return menu.close()
+      const r = button.getBoundingClientRect()
+      void menu.open(r.left, r.bottom)
+    },
+    true,
+  )
+  return menu
 }
 
-/** Watch for Webamp's context menu and re-fit when windows change. */
-function watchWebampLayout(webamp: Webamp, skins: SkinSwitcher) {
+/**
+ * Zellamp can't shape another app's audio, so the EQ would do nothing: close
+ * it, and close the gap if the playlist was docked under it.
+ */
+function hideEqualizer(webamp: Webamp) {
+  const { genWindows } = webamp.store.getState().windows
+  const eq = genWindows.equalizer
+  if (!eq?.open) return
+  const pl = genWindows.playlist
+  const height = eq.shade ? 14 : 116
+  if (pl?.open && pl.position.x === eq.position.x && pl.position.y === eq.position.y + height) {
+    webamp.store.dispatch({
+      type: 'UPDATE_WINDOW_POSITIONS',
+      positions: { playlist: { x: pl.position.x, y: eq.position.y } },
+      absolute: true,
+    } as never)
+  }
+  webamp.store.dispatch({ type: 'CLOSE_WINDOW', windowId: 'equalizer' } as never)
+}
+
+/** Watch for an open menu (grow to fit it) and re-fit when windows change. */
+function watchWebampLayout(webamp: Webamp, skins: SkinSwitcher, menu: PlayerMenu) {
   let lastKey = ''
   const check = () => {
     skins.art.place()
-    const menus = [...document.querySelectorAll('#webamp-context-menu ul')].map((m) => m.getBoundingClientRect())
+    const menus = [...document.querySelectorAll(MENUS)].map((m) => m.getBoundingClientRect())
     const open = menus.some((r) => r.width > 0)
     if (open) {
       skins.setMenuOpen(true, {
@@ -596,6 +633,8 @@ function watchWebampLayout(webamp: Webamp, skins: SkinSwitcher) {
   }
   webamp.store.subscribe(schedule)
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true })
+  // Submenus open by inline style.
+  new MutationObserver(schedule).observe(menu.el, { subtree: true, attributes: true, attributeFilter: ['style'] })
 }
 
 /** Pushes Spotify's state into Webamp's store without echoing it back. */
@@ -671,7 +710,7 @@ function describe(s: SpotifyState) {
   const blank = { artist: '', album: '', art: null as string | null, duration: 0 }
   switch (s.availability) {
     case 'not-running':
-      return { ...blank, key: 'not-running', title: 'Spotify is not running' }
+      return { ...blank, key: 'not-running', title: s.idleText ?? 'Spotify is not running' }
     case 'not-authorized':
       return {
         ...blank,
@@ -739,8 +778,8 @@ function reportHitRegions(webamp: Webamp, skins: SkinSwitcher) {
       webampEl.querySelectorAll('#main-window, #equalizer-window, #playlist-window, .gen-window').forEach(add)
       document.querySelectorAll('#za-art:not([hidden])').forEach(add)
     }
-    // Webamp's right-click menus (and their submenus) live outside the windows.
-    document.querySelectorAll('#webamp-context-menu ul').forEach(add)
+    // Menus (and their submenus) live outside the windows.
+    document.querySelectorAll(MENUS).forEach(add)
     const ff = skins.hitRegion()
     if (ff) regions.push(ff)
     const key = JSON.stringify(regions)

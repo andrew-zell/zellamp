@@ -428,10 +428,6 @@ export class FreeformPlayer {
     }
 
     this.svg.addEventListener('pointerdown', this.onPointerDown)
-    this.svg.addEventListener('contextmenu', (e) => {
-      e.preventDefault()
-      window.widget.showContextMenu()
-    })
     // Marquee and clock tick; cheap at 5Hz.
     this.ticker = window.setInterval(() => {
       this.marqueeOffset++
@@ -527,7 +523,7 @@ export class FreeformPlayer {
     const t = s.track
     const dur = (t?.durationMs ?? 0) / 1000
     if (s.availability === 'not-running') {
-      if (key === 'title' || key === 'track' || key === 'status') return 'Spotify is not running'
+      if (key === 'title' || key === 'track' || key === 'status') return s.idleText ?? 'Spotify is not running'
     } else if (s.availability === 'not-authorized') {
       if (key === 'title' || key === 'track' || key === 'status') return 'Allow control in Setup Assistant'
     }

@@ -1,8 +1,5 @@
-import { systemPreferences } from 'electron'
 import type { SpotifyCommand, SpotifyState } from '../shared/types'
-import type { RawRead, SpotifyController } from './spotify'
-
-const NOTIFICATION = 'com.spotify.client.PlaybackStateChanged'
+import type { MediaSource, RawRead } from './sources/types'
 
 // Poll cadences.
 const RESYNC_MS = 5000 // notifications are working: just correct drift
@@ -13,8 +10,9 @@ const POST_COMMAND_MS = 150 // confirm a command took effect
 /**
  * Keeps an authoritative SpotifyState in main and pushes it to listeners.
  *
- * Primary signal is Spotify's distributed notification. Polling covers the
- * position (resync) and acts as fallback when notifications don't arrive.
+ * Primary signal is the source's change events (Spotify's distributed
+ * notification on macOS, media-session events on Windows). Polling covers the
+ * position (resync) and acts as fallback when events don't arrive.
  */
 export class StateBridge {
   private state: SpotifyState = {
@@ -37,35 +35,39 @@ export class StateBridge {
   private reading = false
   private rereadQueued = false
   private lastCommandAt = 0
-  private subscriptionId: number | null = null
+  private unwatch: (() => void) | null = null
   private metadataCompleteFor: string | null = null
   private errorStreak = 0
 
   constructor(
-    private controller: SpotifyController,
+    private source: MediaSource,
     private emit: (state: SpotifyState) => void,
-  ) {}
+  ) {
+    this.state.idleText = source.idleText
+  }
 
   get current(): SpotifyState {
     return this.state
   }
 
+  get idleText() {
+    return this.source.idleText
+  }
+
   start() {
-    this.subscriptionId = systemPreferences.subscribeNotification(NOTIFICATION, (_event, userInfo) =>
-      this.onNotification(userInfo as Record<string, unknown>),
-    )
+    this.unwatch = this.source.watch((patch) => this.onSourceEvent(patch))
     void this.refresh()
   }
 
   stop() {
-    if (this.subscriptionId != null) systemPreferences.unsubscribeNotification(this.subscriptionId)
+    this.unwatch?.()
     if (this.timer) clearTimeout(this.timer)
   }
 
   async command(cmd: SpotifyCommand) {
     this.lastCommandAt = Date.now()
     this.applyOptimistic(cmd)
-    const availability = await this.controller.run(cmd)
+    const availability = await this.source.run(cmd)
     if (availability !== 'ok') this.patch({ availability })
     this.schedule(POST_COMMAND_MS)
   }
@@ -83,7 +85,7 @@ export class StateBridge {
       // (a notification-sourced track has no artwork URL yet).
       const id = this.state.track?.id ?? null
       const knownId = id !== null && id === this.metadataCompleteFor ? id : null
-      const read = await this.controller.read(knownId)
+      const read = await this.source.read(knownId)
       // A command landed while this read was in flight; its result may predate
       // the command and would undo the optimistic update. Read again instead.
       if (this.lastCommandAt > issuedAt) {
@@ -156,39 +158,21 @@ export class StateBridge {
     })
   }
 
-  private onNotification(info: Record<string, unknown>) {
-    if (process.env.WR_DEBUG_PORT) console.log('[bridge] notification', JSON.stringify(info))
+  private onSourceEvent(patch?: Partial<SpotifyState>) {
     this.lastNotificationAt = Date.now()
     this.missedNotifications = 0
     if (!this.notificationsWork) {
       this.notificationsWork = true
-      console.log('[bridge] receiving Spotify notifications')
+      console.log('[bridge] receiving change events')
     }
-
-    // Apply what the notification carries right away so the UI reacts
-    // without waiting on osascript, then do a real read for the rest.
-    const playerState = String(info['Player State'] ?? '').toLowerCase()
-    const trackId = info['Track ID'] as string | undefined
-    const patch: Partial<SpotifyState> = { availability: 'ok' }
-    if (playerState === 'playing' || playerState === 'paused' || playerState === 'stopped') {
-      patch.state = playerState
+    // Apply what the event carries right away so the UI reacts without
+    // waiting on a read, then do a real read for the rest.
+    if (patch) {
+      const p = { ...patch }
+      // Same track: keep the metadata we have (e.g. artwork).
+      if (p.track && p.track.id === this.state.track?.id) delete p.track
+      this.patch(p)
     }
-    if (typeof info['Playback Position'] === 'number') {
-      patch.positionSec = info['Playback Position'] as number
-      patch.sampledAt = Date.now()
-    }
-    if (trackId && trackId !== this.state.track?.id) {
-      patch.track = {
-        id: trackId,
-        name: String(info['Name'] ?? ''),
-        artist: String(info['Artist'] ?? ''),
-        album: String(info['Album'] ?? ''),
-        durationMs: Number(info['Duration'] ?? 0),
-        // Not in the notification; the follow-up read fills it in.
-        artworkUrl: '',
-      }
-    }
-    this.patch(patch)
     void this.refresh()
   }
 

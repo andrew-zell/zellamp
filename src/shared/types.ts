@@ -23,6 +23,8 @@ export interface SpotifyState {
   volume: number
   shuffling: boolean
   repeating: boolean
+  /** Shown when nothing's available ("Spotify is not running" / "Nothing is playing"). */
+  idleText?: string
 }
 
 export type SpotifyCommand =
@@ -124,6 +126,7 @@ export interface SetupStatus {
   /** Automation permission to send Apple Events to Spotify. */
   control: 'granted' | 'denied' | 'unknown'
   visualizer: VisMode
+  platform: 'darwin' | 'win32' | 'linux'
   /** What macOS reports for Screen & System Audio Recording. */
   screenAccess: 'granted' | 'denied' | 'not-determined' | 'restricted' | 'unknown'
 }
@@ -138,6 +141,29 @@ export type SetupAction =
   | 'relaunch'
   | 'open-skins'
   | 'finish'
+
+/**
+ * The player's right-click menu, built by main and drawn in the page (in
+ * Webamp's menu style) so it looks the same for every skin. `action` is
+ * sent back to main when clicked; `slot` marks where the page inserts its
+ * own items.
+ */
+export interface PlayerMenuItem {
+  label?: string
+  checked?: boolean
+  separator?: boolean
+  action?: number
+  slot?: 'windows'
+  submenu?: PlayerMenuItem[]
+}
+
+export interface AboutInfo {
+  version: string
+  platform: string
+}
+
+/** Links the About window may open. */
+export type AboutLink = 'website' | 'licenses'
 
 export const IPC = {
   command: 'spotify:command',
@@ -168,7 +194,8 @@ export const IPC = {
   playerDragEnd: 'player:drag-end',
   playerSetZoom: 'player:set-zoom',
   playerZoom: 'player:zoom',
-  playerContextMenu: 'player:context-menu',
+  playerMenu: 'player:menu',
+  playerMenuAction: 'player:menu-action',
   playerSetArt: 'player:set-art',
   playerArt: 'player:art',
   visRestart: 'vis:restart',
@@ -176,6 +203,8 @@ export const IPC = {
   setupAction: 'setup:action',
   setupChanged: 'setup:changed',
   hideWindow: 'app:hide-window',
+  aboutInfo: 'about:info',
+  aboutOpen: 'about:open',
   panelFit: 'app:panel-fit',
   shown: 'app:shown',
 } as const

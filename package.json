@@ -2,7 +2,7 @@
   "name": "zellamp",
   "productName": "Zellamp",
   "version": "0.1.0",
-  "description": "Zellamp: a Winamp-skinned desktop remote and visualizer for the Spotify macOS app",
+  "description": "Zellamp: a Winamp-skinned desktop remote and visualizer for Spotify and other players",
   "main": "out/main/index.js",
   "private": true,
   "scripts": {
@@ -13,7 +13,8 @@
     "dist": "electron-vite build && electron-builder --mac --arm64",
     "themes": "node scripts/extract-base-skin.mjs && electron scripts/themes/build-themes.cjs && node scripts/freeform/sync.mjs",
     "dmg-background": "node scripts/extract-base-skin.mjs && electron scripts/dmg/build-background.cjs",
-    "skins": "node scripts/freeform/sync.mjs"
+    "skins": "node scripts/freeform/sync.mjs",
+    "dist:win": "electron-vite build && electron-builder --win --x64"
   },
   "license": "MIT",
   "devDependencies": {
@@ -80,8 +81,46 @@
           "*.svg",
           "themes.json"
         ]
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
       }
     ],
-    "afterSign": "scripts/sign.cjs"
-  }
+    "afterSign": "scripts/sign.cjs",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.png",
+      "extraResources": [
+        {
+          "from": "resources/windows",
+          "to": "windows",
+          "filter": [
+            "*.ps1"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Zellamp"
+    },
+    "electronLanguages": [
+      "en-US"
+    ]
+  },
+  "author": "Andrew Zell"
 }

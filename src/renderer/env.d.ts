@@ -1,4 +1,4 @@
-import type { SetupApi, SpotifyApi, ThemesApi, WidgetApi } from '../preload'
+import type { AboutApi, SetupApi, SpotifyApi, ThemesApi, WidgetApi } from '../preload'
 
 declare global {
   interface Window {
@@ -6,5 +6,6 @@ declare global {
     widget: WidgetApi
     themes: ThemesApi
     setup: SetupApi
+    about: AboutApi
   }
 }

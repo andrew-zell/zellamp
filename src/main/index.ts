@@ -20,11 +20,13 @@ import { basename, join } from 'node:path'
 import {
   IPC,
   PANEL_SIZE,
+  type AboutLink,
   ZOOM_LEVELS,
   panelScale,
   type AppConfig,
   type HitMask,
   type HitRegion,
+  type PlayerMenuItem,
   type SetupAction,
   type SetupStatus,
   type SpotifyCommand,
@@ -33,12 +35,14 @@ import {
   type WindowLayoutEntry,
 } from '../shared/types'
 import { loadConfig, saveConfig } from './config'
-import { SpotifyController } from './spotify'
+import { MacSpotifySource } from './sources/macSpotify'
+import type { MediaSource } from './sources/types'
+import { WindowsMediaSource } from './sources/windowsMedia'
 import { HitTester } from './hitTest'
 import { PlayerWindow } from './player'
 import { StateBridge } from './stateBridge'
 import { installTheme, listThemes, readTheme, removeTheme, themeExists, themeInfo, userThemesDir } from './themes'
-import { TRAY_ICON_1X, TRAY_ICON_2X } from './trayIcon'
+import { TRAY_ICON_1X, TRAY_ICON_2X, TRAY_ICON_COLOR_1X, TRAY_ICON_COLOR_2X } from './trayIcon'
 
 // Never let Chromium grab the hardware media keys: those belong to Spotify.
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService')
@@ -49,6 +53,9 @@ if (!app.isPackaged && process.env.WR_DEBUG_PORT) {
 
 // One Zellamp at a time (dev and packaged builds share settings): a second
 // launch just brings the running one forward.
+// Dev-only: a separate profile, so a dev build can run beside the installed app.
+if (!app.isPackaged && process.env.WR_USER_DATA) app.setPath('userData', process.env.WR_USER_DATA)
+
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 }
@@ -59,11 +66,20 @@ let hits: HitTester | null = null
 let player: PlayerWindow | null = null
 let gallery: BrowserWindow | null = null
 let setup: BrowserWindow | null = null
+let about: BrowserWindow | null = null
 let visMode: VisMode = 'starting'
 let tray: Tray | null = null
 let config: AppConfig
-const controller = new SpotifyController()
-const bridge = new StateBridge(controller, (state) => {
+const isMac = process.platform === 'darwin'
+const isWindows = process.platform === 'win32'
+
+/** What's playing and how to control it, per platform (see sources/types.ts). */
+function createSource(): MediaSource {
+  if (isWindows) return new WindowsMediaSource()
+  return new MacSpotifySource()
+}
+
+const bridge = new StateBridge(createSource(), (state) => {
   win?.webContents.send(IPC.state, state)
   pushSetupStatus()
 })
@@ -77,7 +93,7 @@ const bridge = new StateBridge(controller, (state) => {
 const preloadPath = () => join(__dirname, '../preload/index.js')
 
 /** Loads a renderer page from the dev server or the built output. */
-function loadPage(target: BrowserWindow, page: 'index.html' | 'gallery.html' | 'setup.html') {
+function loadPage(target: BrowserWindow, page: 'index.html' | 'gallery.html' | 'setup.html' | 'about.html') {
   // No remote content, no popups, no navigation away from the app.
   target.webContents.setWindowOpenHandler(({ url }) => {
     // Webamp's "Webamp..." / About links: open the project page in the browser.
@@ -167,11 +183,14 @@ function toggleWindow() {
 
 function buildTray() {
   const icon = nativeImage.createEmpty()
-  icon.addRepresentation({ scaleFactor: 1, dataURL: TRAY_ICON_1X })
-  icon.addRepresentation({ scaleFactor: 2, dataURL: TRAY_ICON_2X })
-  icon.setTemplateImage(true)
+  icon.addRepresentation({ scaleFactor: 1, dataURL: isMac ? TRAY_ICON_1X : TRAY_ICON_COLOR_1X })
+  icon.addRepresentation({ scaleFactor: 2, dataURL: isMac ? TRAY_ICON_2X : TRAY_ICON_COLOR_2X })
+  // macOS: monochrome template icon that adapts to the menu bar.
+  if (isMac) icon.setTemplateImage(true)
   tray = new Tray(icon)
   tray.setToolTip('Zellamp')
+  // Windows convention: left-click opens the tray menu too.
+  if (!isMac) tray.on('click', () => tray?.popUpContextMenu())
 }
 
 // ---------- zoom ----------
@@ -221,9 +240,24 @@ function zoomMenuItems(withShortcuts: boolean): MenuItemConstructorOptions[] {
   ]
 }
 
-/** Items shared by the tray menu and the app's "Widget" menu. */
-function widgetMenuItems(): MenuItemConstructorOptions[] {
-  const screenAccess = systemPreferences.getMediaAccessStatus('screen')
+/** Skin Browser, the installed skins, and Install Skin. */
+function skinsMenuItems(withShortcut: boolean): MenuItemConstructorOptions[] {
+  return [
+    { label: 'Skin Browser…', accelerator: withShortcut ? 'CmdOrCtrl+T' : undefined, click: openGallery },
+    { type: 'separator' },
+    ...listThemes().map((t) => ({
+      label: t.name,
+      type: 'radio' as const,
+      checked: t.id === activeThemeId(),
+      click: () => applyTheme(t.id),
+    })),
+    { type: 'separator' },
+    { label: 'Install Skin…', click: () => void pickSkin() },
+  ]
+}
+
+function optionsMenuItems(): MenuItemConstructorOptions[] {
+  const screenAccess = isMac ? systemPreferences.getMediaAccessStatus('screen') : 'granted'
   return [
     {
       label: 'Always on Top',
@@ -236,31 +270,22 @@ function widgetMenuItems(): MenuItemConstructorOptions[] {
         refreshMenus()
       },
     },
-    {
-      label: 'Show in Dock',
-      type: 'checkbox',
-      checked: config.showInDock,
-      click: (item) => {
-        config.showInDock = item.checked
-        saveConfig(config)
-        applyDockVisibility()
-        refreshMenus()
-      },
-    },
+    ...(isMac
+      ? [
+          {
+            label: 'Show in Dock',
+            type: 'checkbox' as const,
+            checked: config.showInDock,
+            click: (item: Electron.MenuItem) => {
+              config.showInDock = item.checked
+              saveConfig(config)
+              applyDockVisibility()
+              refreshMenus()
+            },
+          },
+        ]
+      : []),
     { type: 'separator' },
-    { label: 'Skin Browser…', accelerator: 'CmdOrCtrl+T', click: openGallery },
-    {
-      label: 'Themes',
-      submenu: listThemes().map((t) => ({
-        label: t.name,
-        type: 'radio' as const,
-        checked: t.id === activeThemeId(),
-        click: () => applyTheme(t.id),
-      })),
-    },
-    { label: 'Install Skin…', click: () => void pickSkin() },
-    { label: 'Zoom', submenu: zoomMenuItems(false) },
-    artMenuItem(false),
     { label: 'Setup Assistant…', click: openSetup },
     {
       label: 'Reset Window Positions',
@@ -285,11 +310,102 @@ function widgetMenuItems(): MenuItemConstructorOptions[] {
   ]
 }
 
+/** Items shared by the tray menu and the app's "Widget" menu. */
+function widgetMenuItems(): MenuItemConstructorOptions[] {
+  return [
+    { label: 'Skins', submenu: skinsMenuItems(true) },
+    { label: 'Zoom', submenu: zoomMenuItems(false) },
+    artMenuItem(false),
+    { type: 'separator' },
+    ...optionsMenuItems(),
+  ]
+}
+
+/** The player's right-click menu: the same for every skin. */
+function playerMenuItems(): MenuItemConstructorOptions[] {
+  const s = bridge.current
+  const command = (cmd: SpotifyCommand) => () => void bridge.command(cmd)
+  return [
+    { label: 'About Zellamp…', click: openAbout },
+    { type: 'separator' },
+    {
+      label: 'Playback',
+      submenu: [
+        { label: 'Play / Pause', click: command({ type: 'playpause' }) },
+        { label: 'Previous', click: command({ type: 'prev' }) },
+        { label: 'Next', click: command({ type: 'next' }) },
+        { type: 'separator' },
+        {
+          label: 'Shuffle',
+          type: 'checkbox',
+          checked: s.shuffling,
+          click: (item) => void bridge.command({ type: 'setShuffle', value: item.checked }),
+        },
+        {
+          label: 'Repeat',
+          type: 'checkbox',
+          checked: s.repeating,
+          click: (item) => void bridge.command({ type: 'setRepeat', value: item.checked }),
+        },
+      ],
+    },
+    { type: 'separator' },
+    { id: 'slot:windows' },
+    { type: 'separator' },
+    { label: 'Skins', submenu: skinsMenuItems(false) },
+    {
+      label: 'Zoom',
+      submenu: ZOOM_LEVELS.map((z) => ({
+        label: `${z * 100}%`,
+        type: 'radio' as const,
+        checked: config.zoom === z,
+        click: () => setZoom(z),
+      })),
+    },
+    artMenuItem(false),
+    { label: 'Options', submenu: optionsMenuItems() },
+    { type: 'separator' },
+    { label: 'Hide Zellamp', click: () => win?.hide() },
+    { label: 'Exit', click: () => app.quit() },
+  ]
+}
+
+/** Flatten menu templates for the page; clicks come back by index. */
+let playerMenuClicks: (() => void)[] = []
+function serializeMenu(items: MenuItemConstructorOptions[]): PlayerMenuItem[] {
+  return items.map((item) => {
+    if (item.type === 'separator') return { separator: true }
+    if (item.id === 'slot:windows') return { slot: 'windows' }
+    const out: PlayerMenuItem = { label: item.label ?? '' }
+    if (item.type === 'checkbox' || item.type === 'radio') out.checked = Boolean(item.checked)
+    if (Array.isArray(item.submenu)) out.submenu = serializeMenu(item.submenu)
+    else if (item.click) {
+      const click = item.click as unknown as (menuItem: { checked: boolean }) => void
+      // Checkbox handlers read the toggled value, as Electron's would.
+      out.action = playerMenuClicks.push(() => click({ checked: !item.checked })) - 1
+    }
+    return out
+  })
+}
+
 function refreshMenus() {
   const command = (cmd: SpotifyCommand) => () => void bridge.command(cmd)
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
-      { role: 'appMenu' },
+      {
+        label: app.name,
+        submenu: [
+          { label: `About ${app.name}`, click: openAbout },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' },
+        ],
+      },
       { label: 'View', submenu: [artMenuItem(true), { type: 'separator' }, ...zoomMenuItems(true)] },
       {
         label: 'Controls',
@@ -306,6 +422,8 @@ function refreshMenus() {
     Menu.buildFromTemplate([
       { label: 'Show / Hide', click: toggleWindow },
       ...widgetMenuItems(),
+      { type: 'separator' },
+      { label: 'About Zellamp…', click: openAbout },
       { type: 'separator' },
       { label: 'Quit Zellamp', role: 'quit' },
     ]),
@@ -413,7 +531,8 @@ function setupStatus(): SetupStatus {
     spotify: availability === 'not-running' ? (spotifyInstalled() ? 'not-running' : 'missing') : 'running',
     control: availability === 'ok' ? 'granted' : availability === 'not-authorized' ? 'denied' : 'unknown',
     visualizer: visMode,
-    screenAccess: systemPreferences.getMediaAccessStatus('screen'),
+    platform: process.platform as SetupStatus['platform'],
+    screenAccess: isMac ? systemPreferences.getMediaAccessStatus('screen') : 'granted',
   }
 }
 
@@ -436,7 +555,8 @@ async function runSetupAction(action: SetupAction) {
   switch (action) {
     case 'open-spotify':
       // `open -b` launches by bundle id without us scripting Spotify.
-      execFile('open', ['-b', 'com.spotify.client'])
+      if (isMac) execFile('open', ['-b', 'com.spotify.client'])
+      else void shell.openExternal('spotify:')
       break
     case 'get-spotify':
       void shell.openExternal('https://www.spotify.com/download/mac/')
@@ -495,6 +615,32 @@ function openSetup() {
     }
   })
   loadPage(setup, 'setup.html')
+}
+
+// ---------- About ----------
+
+const WEBSITE = 'https://github.com/andrew-zell/zellamp'
+
+function openAbout() {
+  if (about) {
+    about.show()
+    about.focus()
+    return
+  }
+  about = createPanelWindow('About Zellamp')
+  about.once('ready-to-show', () => about?.show())
+  about.on('closed', () => (about = null))
+  loadPage(about, 'about.html')
+}
+
+function openAboutLink(link: AboutLink) {
+  if (link === 'website') void shell.openExternal(WEBSITE)
+  else if (link === 'licenses') {
+    const file = app.isPackaged
+      ? join(process.resourcesPath, 'THIRD_PARTY_NOTICES.txt')
+      : join(app.getAppPath(), 'THIRD_PARTY_NOTICES.txt')
+    void shell.openPath(file)
+  }
 }
 
 function openGallery() {
@@ -587,27 +733,12 @@ function registerIpc() {
   ipcMain.on(IPC.playerSetZoom, (_e, z: unknown) => {
     if (isNum(z)) setZoom(z)
   })
-  // Freeform skins have no Webamp menu; give them a native one.
-  ipcMain.on(IPC.playerContextMenu, () => {
-    if (!win) return
-    Menu.buildFromTemplate([
-      { label: 'Skin Browser…', click: openGallery },
-      { label: 'Zoom', submenu: zoomMenuItems(false) },
-      artMenuItem(false),
-      {
-        label: 'Always on Top',
-        type: 'checkbox',
-        checked: config.alwaysOnTop,
-        click: (item) => {
-          config.alwaysOnTop = item.checked
-          saveConfig(config)
-          applyAlwaysOnTop()
-          refreshMenus()
-        },
-      },
-      { type: 'separator' },
-      { label: 'Hide', click: () => win?.hide() },
-    ]).popup({ window: win })
+  ipcMain.handle(IPC.playerMenu, () => {
+    playerMenuClicks = []
+    return serializeMenu(playerMenuItems())
+  })
+  ipcMain.on(IPC.playerMenuAction, (_e, i: unknown) => {
+    if (typeof i === 'number') playerMenuClicks[i]?.()
   })
   ipcMain.on(IPC.playerDragEnd, () => player?.dragEnd())
 
@@ -649,6 +780,10 @@ function registerIpc() {
     return setupStatus()
   })
   ipcMain.on(IPC.hideWindow, () => win?.hide())
+  ipcMain.handle(IPC.aboutInfo, () => ({ version: app.getVersion(), platform: process.platform }))
+  ipcMain.on(IPC.aboutOpen, (_e, link: unknown) => {
+    if (link === 'website' || link === 'licenses') openAboutLink(link)
+  })
   ipcMain.on(IPC.panelFit, (e, scale: unknown) => {
     const panel = BrowserWindow.fromWebContents(e.sender)
     if (!panel || panel === win || typeof scale !== 'number' || !(scale > 0 && scale <= 4)) return
@@ -698,6 +833,7 @@ app.whenReady().then(() => {
   refreshMenus()
   bridge.start()
   if (!app.isPackaged && process.env.WR_OPEN_GALLERY) openGallery()
+  if (!app.isPackaged && process.env.WR_OPEN_ABOUT) openAbout()
   if (!config.onboarded || (!app.isPackaged && process.env.WR_OPEN_SETUP)) openSetup()
   screen.on('display-metrics-changed', keepPlayerVisible)
   screen.on('display-added', keepPlayerVisible)

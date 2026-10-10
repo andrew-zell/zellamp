@@ -1,9 +1,12 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
   IPC,
+  type AboutInfo,
+  type AboutLink,
   type AppConfig,
   type HitMask,
   type HitRegion,
+  type PlayerMenuItem,
   type SetupAction,
   type SetupStatus,
   type SpotifyCommand,
@@ -55,7 +58,9 @@ const widget = {
   onZoom: (cb: (zoom: number) => void) => {
     ipcRenderer.on(IPC.playerZoom, (_e, z: number) => cb(z))
   },
-  showContextMenu: () => ipcRenderer.send(IPC.playerContextMenu),
+  /** The right-click menu's items (see PlayerMenuItem). */
+  getMenu: () => ipcRenderer.invoke(IPC.playerMenu) as Promise<PlayerMenuItem[]>,
+  menuAction: (action: number) => ipcRenderer.send(IPC.playerMenuAction, action),
   setShowArt: (show: boolean) => ipcRenderer.send(IPC.playerSetArt, show),
   onShowArt: (cb: (show: boolean) => void) => {
     ipcRenderer.on(IPC.playerArt, (_e, show: boolean) => cb(show))
@@ -95,6 +100,12 @@ const setup = {
   },
 }
 
+const about = {
+  info: () => ipcRenderer.invoke(IPC.aboutInfo) as Promise<AboutInfo>,
+  open: (link: AboutLink) => ipcRenderer.send(IPC.aboutOpen, link),
+}
+
+contextBridge.exposeInMainWorld('about', about)
 contextBridge.exposeInMainWorld('spotify', spotify)
 contextBridge.exposeInMainWorld('setup', setup)
 contextBridge.exposeInMainWorld('widget', widget)
@@ -104,3 +115,4 @@ export type SpotifyApi = typeof spotify
 export type WidgetApi = typeof widget
 export type ThemesApi = typeof themes
 export type SetupApi = typeof setup
+export type AboutApi = typeof about

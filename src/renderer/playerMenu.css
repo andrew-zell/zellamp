@@ -1,0 +1,78 @@
+/* Webamp's context menu style (white, Tahoma, XP-blue highlight). */
+#za-menu {
+  position: fixed;
+  z-index: 100;
+}
+
+#za-menu ul {
+  position: absolute;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  border: 1px solid #a7a394;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+#za-menu ul.za-menu-root {
+  left: 0;
+  top: 0;
+}
+
+#za-menu ul ul {
+  left: 100%;
+  top: -3px;
+  margin-left: -3px;
+}
+
+#za-menu li {
+  position: relative;
+  display: block;
+  margin: 2px;
+  padding: 1px 18px 3px 18px;
+  font-family: Tahoma, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  color: #000;
+  white-space: nowrap;
+}
+
+#za-menu li.checked::before {
+  float: left;
+  content: '\2713';
+  margin-left: -12px;
+}
+
+#za-menu li.parent::after {
+  float: right;
+  content: '\25b8';
+  margin-right: -12px;
+}
+
+#za-menu li:hover,
+#za-menu li.open {
+  background-color: #224eb7;
+  color: #fff;
+}
+
+#za-menu li.hr {
+  padding: 2px 0;
+}
+
+#za-menu li.hr:hover {
+  background-color: #fff;
+}
+
+#za-menu li.hr hr {
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: #a7a394;
+}
+
+/* A submenu's items don't inherit the parent's highlight. */
+#za-menu li.open > ul li:not(:hover):not(.open) {
+  background-color: #fff;
+  color: #000;
+}
