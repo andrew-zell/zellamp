@@ -14,7 +14,11 @@
     "themes": "node scripts/extract-base-skin.mjs && electron scripts/themes/build-themes.cjs && node scripts/freeform/sync.mjs",
     "dmg-background": "node scripts/extract-base-skin.mjs && electron scripts/dmg/build-background.cjs",
     "skins": "node scripts/freeform/sync.mjs",
-    "dist:win": "electron-vite build && electron-builder --win --x64"
+    "dist:win": "electron-vite build && electron-builder --win --x64",
+    "icon": "node scripts/icon/build-icon.mjs",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test",
+    "release": "scripts/make-release.sh"
   },
   "license": "MIT",
   "devDependencies": {
@@ -24,6 +28,7 @@
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
     "vite": "^7.3.7",
+    "vitest": "^3.2.7",
     "webamp": "2.3.1"
   },
   "build": {
@@ -43,7 +48,7 @@
         "NSAudioCaptureUsageDescription": "Zellamp listens to system audio to drive the spectrum visualizer.",
         "NSScreenCaptureUsageDescription": "Screen capture permission is required by macOS to access system audio for the visualizer."
       },
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.icns",
       "identity": "-"
     },
     "directories": {
@@ -101,7 +106,7 @@
           ]
         }
       ],
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.ico",
       "extraResources": [
         {
           "from": "resources/windows",

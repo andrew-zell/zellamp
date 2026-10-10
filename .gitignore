@@ -1,6 +1,15 @@
 node_modules/
-out/
-dist/
 .DS_Store
 *.log
+
+# Build output (regenerable: npm run build / npm run dist / make-release.sh)
+out/
+dist/
+
+# Base-skin sprites extracted from Webamp's bundle (npm run themes rebuilds them)
 scripts/.cache/
+
+# Skins dropped in the project root for testing. Third-party skins belong to
+# their authors: install them through the Skin Browser, don't commit them.
+/*.wsz
+/*.zip
