@@ -1,7 +1,7 @@
 {
   "name": "zellamp",
   "productName": "Zellamp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zellamp: a Winamp-skinned desktop remote and visualizer for Spotify and other players",
   "main": "out/main/index.js",
   "private": true,
