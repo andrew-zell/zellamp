@@ -10,7 +10,7 @@
 #
 # Output (dist/):
 #   Zellamp-<version>-arm64.dmg        macOS (Apple Silicon)
-#   Zellamp Setup <version>.exe        Windows x64 (NSIS)
+#   Zellamp-Setup-<version>.exe        Windows x64 (NSIS)
 #   SHA256SUMS.txt
 #
 # Signing: the Mac app is re-signed with the "Zellamp Local Signing"
@@ -36,7 +36,7 @@ echo "== Windows =="
 npx electron-builder --win --x64
 
 DMG="dist/Zellamp-$VERSION-arm64.dmg"
-EXE="dist/Zellamp Setup $VERSION.exe"
+EXE="dist/Zellamp-Setup-$VERSION.exe"
 for f in "$DMG" "$EXE"; do
   [[ -f "$f" ]] || { echo "missing $f" >&2; exit 1; }
 done

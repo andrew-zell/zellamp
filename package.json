@@ -121,7 +121,8 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Zellamp"
+      "shortcutName": "Zellamp",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "electronLanguages": [
       "en-US"

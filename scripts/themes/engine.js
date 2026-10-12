@@ -108,17 +108,27 @@
     ' ': ['   ', '   ', '   ', '   ', '   ', '   ', '   '],
   }
 
-  function textWidth(text) {
-    return [...text].reduce((w, ch) => w + GLYPHS[ch][0].length + 1, -1)
+  // Narrower letters for the shade-mode bar, where the text slot is ~44px.
+  const NARROW = {
+    ...GLYPHS,
+    A: [' ### ', '## ##', '## ##', '#####', '## ##', '## ##', '## ##'],
+    E: ['#####', '##   ', '##   ', '#### ', '##   ', '##   ', '#####'],
+    L: ['##   ', '##   ', '##   ', '##   ', '##   ', '##   ', '#####'],
+    P: ['#### ', '## ##', '## ##', '#### ', '##   ', '##   ', '##   '],
+    Z: ['#####', '   ##', '  ## ', ' ##  ', '##   ', '##   ', '#####'],
   }
 
-  function drawText(ctx, text, x, y, color, shadow) {
+  function textWidth(text, glyphs = GLYPHS) {
+    return [...text].reduce((w, ch) => w + glyphs[ch][0].length + 1, -1)
+  }
+
+  function drawText(ctx, text, x, y, color, shadow, glyphs = GLYPHS) {
     const passes = shadow ? [[1, 1, shadow], [0, 0, color]] : [[0, 0, color]]
     for (const [dx, dy, c] of passes) {
       ctx.fillStyle = c
       let cx = x + dx
       for (const ch of text) {
-        const g = GLYPHS[ch]
+        const g = glyphs[ch]
         g.forEach((row, ry) => {
           for (let rx = 0; rx < row.length; rx++) if (row[rx] === '#') ctx.fillRect(cx + rx, y + dy + ry, 1, 1)
         })
@@ -132,7 +142,7 @@
    * from the text, so copying one ridge column across erases the old text and
    * keeps the ridges matching the tiles around it.
    */
-  function retitle(ctx, x, y, w, h, sampleX, text, colors) {
+  function retitle(ctx, x, y, w, h, sampleX, text, colors, { glyphs = GLYPHS, pad = 4 } = {}) {
     const col = ctx.getImageData(sampleX, y, 1, h)
     for (let cx = x; cx < x + w; cx++) ctx.putImageData(col, cx, y)
 
@@ -144,12 +154,12 @@
       counts.set(key, (counts.get(key) ?? 0) + 1)
     }
     const body = [...counts].sort((a, b) => b[1] - a[1])[0][0].split(',')
-    const tw = textWidth(text)
+    const tw = textWidth(text, glyphs)
     const tx = Math.round(x + (w - tw) / 2)
     const ty = y + 3
     ctx.fillStyle = `rgb(${body.join(',')})`
-    ctx.fillRect(tx - 4, ty - 1, tw + 8, 9)
-    drawText(ctx, text, tx, ty, colors.text, colors.shadow)
+    ctx.fillRect(tx - pad, ty - 1, tw + pad * 2, 9)
+    drawText(ctx, text, tx, ty, colors.text, colors.shadow, glyphs)
   }
 
   // gen.bmp's letter rows are found by scanning for the background color at
@@ -221,6 +231,11 @@
     const t = out.TITLEBAR.getContext('2d')
     retitle(t, 27 + 16, 0, 228, 14, 27 + 20, 'ZELLAMP', active)
     retitle(t, 27 + 16, 15, 228, 14, 27 + 20, 'ZELLAMP', inactive)
+    // Shade-mode bars (active y=29, inactive y=42): only the text slot between
+    // the logo and the "=" divider; the rest holds the mini display and buttons.
+    const shade = { glyphs: NARROW, pad: 1 }
+    retitle(t, 27 + 17, 29, 45, 14, 27 + 17, 'ZELLAMP', active, shade)
+    retitle(t, 27 + 17, 42, 45, 14, 27 + 17, 'ZELLAMP', inactive, shade)
     const eq = out.EQMAIN.getContext('2d')
     retitle(eq, 3, 134, 238, 14, 8, 'ZELLAMP EQUALIZER', active)
     retitle(eq, 3, 149, 238, 14, 8, 'ZELLAMP EQUALIZER', inactive)

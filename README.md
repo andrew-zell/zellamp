@@ -21,7 +21,7 @@ Spotify / browser player  ⇄  Zellamp (main process)  →  Webamp or a freeform
 Grab the installer from [**Releases**](../../releases/latest).
 
 - **macOS:** open the DMG and drag **Zellamp** to Applications. Requires macOS 13 or later on Apple Silicon. The app isn't notarized yet, so the first launch is blocked: open **System Settings › Privacy & Security** and click **Open Anyway**.
-- **Windows 10/11 (x64):** run **Zellamp Setup.exe**. SmartScreen warns about an unknown publisher: click **More info › Run anyway**.
+- **Windows 10/11 (x64):** run **Zellamp-Setup.exe**. SmartScreen warns about an unknown publisher: click **More info › Run anyway**.
 
 On first launch the **Setup Assistant** walks you through what your system needs (on macOS: permission to control Spotify, and optionally to hear audio for the visualizer).
 
